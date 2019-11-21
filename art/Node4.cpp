@@ -1,9 +1,11 @@
 #include "Node4.h"
 
-Node4::Node4()
+template <typename T>
+Node4<T>::Node4()
 {
 }
 
-Node4::~Node4()
+template <typename T>
+Node4<T>::~Node4()
 {
 }

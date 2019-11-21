@@ -1,7 +1,10 @@
 #ifndef _Node4_H
 #define _Node4_H
 
-class Node4{
+#include "InnerNode.h"
+
+template <typename T>
+class Node4 : public InnerNode<T>{
 public:
   Node4();
   ~Node4();
