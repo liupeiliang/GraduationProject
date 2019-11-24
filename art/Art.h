@@ -1,12 +1,14 @@
 #ifndef _Art_H
 #define _Art_H
 
-class Art{
+template <typename T> class Art{
 public:
   Art();
   ~Art();
 
-  int calc(int x, int y) { return x+y; }
+  T* Find(const char* key) const ;
+  void Insert(const char* key, T* value) ;
+  // ArtIterator SearchPrefix(const char* prefix) ;
   
 private:
 };
