@@ -9,6 +9,8 @@ public:
   LeafNode();
   ~LeafNode();
 
+  bool IsLeaf() const override { return true; }
+  
 private:
 };
 
