@@ -12,6 +12,10 @@ public:
   bool IsLeaf() const override { return true; }
   
 private:
+
+  T* mValue;
+  char mKey[];
+  
 };
 
 #endif //_LeafNode_H

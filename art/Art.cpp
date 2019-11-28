@@ -3,6 +3,7 @@
 template <typename T>
 Art<T>::Art()
 {
+  mNodeAllocator = new NodeAllocator<T>;
 }
 
 template <typename T>

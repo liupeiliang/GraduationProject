@@ -1,9 +1,11 @@
 #include "NodeAllocator.h"
 
-NodeAllocator::NodeAllocator()
+template <typename T>
+NodeAllocator<T>::NodeAllocator()
 {
 }
 
-NodeAllocator::~NodeAllocator()
+template <typename T>
+NodeAllocator<T>::~NodeAllocator()
 {
 }

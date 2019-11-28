@@ -4,6 +4,8 @@
 #include "InnerNode.h"
 #include "Node.h"
 
+#pragma pack(4)
+
 template <typename T>
 class Node4 : public InnerNode<T>{
   
@@ -13,8 +15,8 @@ public:
 
 private:
   
-    Node<T> mChildren[4];
-    uint8_t mKey[4];
+  Node<T>* mChildren[4];
+  uint8_t mKey[4];
     
 };
 

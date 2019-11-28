@@ -12,7 +12,7 @@ public:
 
 private:
 
-  Node<T> mChildren[16];
+  Node<T>* mChildren[16];
   uint8_t mKey[16];
   
 };

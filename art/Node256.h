@@ -12,7 +12,7 @@ public:
 
 private:
 
-  Node<T> mChildren[256];
+  Node<T>* mChildren[256];
   
 };
 
