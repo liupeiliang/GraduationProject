@@ -20,4 +20,16 @@ private:
 
 };
 
+
+template <typename T>
+InnerNode<T>::InnerNode()
+{
+}
+
+template <typename T>
+InnerNode<T>::~InnerNode()
+{
+}
+
+
 #endif //_InnerNode_H

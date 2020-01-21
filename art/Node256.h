@@ -16,4 +16,16 @@ private:
   
 };
 
+
+template <typename T>
+Node256<T>::Node256()
+{
+}
+
+template <typename T>
+Node256<T>::~Node256()
+{
+}
+
+
 #endif //_Node256_H

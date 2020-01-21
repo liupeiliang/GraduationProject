@@ -12,8 +12,8 @@ def CreateTest(className):
     f.write("class " + className + "Test : public ::testing::Test\n")
     f.write("{\n")
     f.write("protected:\n")
-    f.write("void SetUp() override {}\n")
-    f.write("void TearDown() override {}\n")
+    f.write("  void SetUp() override {}\n")
+    f.write("  void TearDown() override {}\n")
     f.write("};\n")
     f.write("\n")
     

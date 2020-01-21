@@ -3,6 +3,7 @@
 
 #include "InnerNode.h"
 #include "Node.h"
+using namespace std;
 
 #pragma pack(4)
 
@@ -19,5 +20,15 @@ private:
   uint8_t mKey[4];
     
 };
+
+template <typename T>
+Node4<T>::Node4()
+{
+}
+
+template <typename T>
+Node4<T>::~Node4()
+{
+}
 
 #endif //_Node4_H

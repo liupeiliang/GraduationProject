@@ -15,14 +15,6 @@ def CreateHeader(className):
     f.write("};\n")
     f.write("\n")
     
-    f.write("#endif //" + mark + "\n")
-
-    f.close()
-
-def CreateSource(className):
-    f = open(className + ".cpp", "w")
-    f.write("#include \"" + className + ".h\"\n\n")
-
     f.write(className + "::" + className + "()\n")
     f.write("{\n")
     f.write("}\n")
@@ -31,8 +23,8 @@ def CreateSource(className):
     f.write("{\n")
     f.write("}\n")
     
+    f.write("#endif //" + mark + "\n")
+
     f.close()
-    
 
 CreateHeader(sys.argv[1])
-CreateSource(sys.argv[1])

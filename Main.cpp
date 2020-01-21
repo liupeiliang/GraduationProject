@@ -1,6 +1,10 @@
 #include <bits/stdc++.h>
 #include "gtest/gtest.h"
 #include "test/ArtTest.cpp"
+#include "test/Node4Test.cpp"
+#include "test/NodeAllocatorTest.cpp"
+#include "test/Node256Test.cpp"
+#include "art/Node4.h"
 
 using namespace std;
 

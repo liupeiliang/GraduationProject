@@ -18,4 +18,16 @@ private:
   
 };
 
+
+template <typename T>
+LeafNode<T>::LeafNode()
+{
+}
+
+template <typename T>
+LeafNode<T>::~LeafNode()
+{
+}
+
+
 #endif //_LeafNode_H

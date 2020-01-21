@@ -12,8 +12,11 @@ protected:
 
 TEST_F(ArtTest, TestCalc)
 {
-  Art t;
-  ASSERT_EQ(11, t.calc(5, 6));
-  ASSERT_EQ(333, t.calc(111, 222));
+  ASSERT_EQ(233, 233);
+}
+
+TEST_F(ArtTest, Test1)
+{
+//  Art<int> art;
 }
 

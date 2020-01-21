@@ -6,11 +6,12 @@ using namespace std;
 class Node4Test : public ::testing::Test
 {
 protected:
-void SetUp() override {}
-void TearDown() override {}
+  void SetUp() override {}
+  void TearDown() override {}
 };
 
 TEST_F(Node4Test, Test1)
 {
-  ASSERT_TRUE(true);
+//  cout<<sizeof(Node4<int>)<<"     !!"<<endl;
+//  Node4<int>* tem = new Node4<int>();
 }

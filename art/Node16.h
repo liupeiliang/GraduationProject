@@ -17,4 +17,16 @@ private:
   
 };
 
+
+template <typename T>
+Node16<T>::Node16()
+{
+}
+
+template <typename T>
+Node16<T>::~Node16()
+{
+}
+
+
 #endif //_Node16_H

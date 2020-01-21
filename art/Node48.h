@@ -17,4 +17,16 @@ private:
   
 };
 
+
+template <typename T>
+Node48<T>::Node48()
+{
+}
+
+template <typename T>
+Node48<T>::~Node48()
+{
+}
+
+
 #endif //_Node48_H
