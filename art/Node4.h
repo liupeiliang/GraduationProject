@@ -24,11 +24,13 @@ private:
 template <typename T>
 Node4<T>::Node4()
 {
+  cout<<"11"<<endl;
 }
 
 template <typename T>
 Node4<T>::~Node4()
 {
+  cout<<"22"<<endl;
 }
 
 #endif //_Node4_H

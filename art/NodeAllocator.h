@@ -45,12 +45,12 @@ template <typename T>
 Node<T>* NodeAllocator<T>::NewNode(const int nodeType)
 {
   switch(nodeType){
-  case NODE4: return new(mPool4.allocate()) Node4<T>;
-  case NODE16: return new(mPool16.allocate()) Node16<T>;
-  case NODE48: return new(mPool48.allocate()) Node48<T>;
-  case NODE256:return new(mPool256.allocate()) Node256<T>;
+  case NODE4: return (Node<T>*)(mPool4.newElement());
+  case NODE16: return (Node<T>*)(mPool16.newElement());
+  case NODE48: return (Node<T>*)(mPool48.newElement());
+  case NODE256:return (Node<T>*)(mPool256.newElement());
   default:
-    throw std::runtime_error("NodeAllo NewNode");
+    throw std::runtime_error("NodeAllocator::NewNode wrongType");
   }
   
   return nullptr;
