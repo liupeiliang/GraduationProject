@@ -5,7 +5,7 @@
 #include "Node.h"
 using namespace std;
 
-#pragma pack(4)
+#pragma pack(8)
 
 template <typename T>
 class Node4 : public InnerNode<T>{
@@ -24,13 +24,13 @@ private:
 template <typename T>
 Node4<T>::Node4()
 {
-  cout<<"11"<<endl;
+  memset(mKey, 0, sizeof(mKey));
+  memset(mChildren, 0, sizeof(mChildren));
 }
 
 template <typename T>
 Node4<T>::~Node4()
 {
-  cout<<"22"<<endl;
 }
 
 #endif //_Node4_H

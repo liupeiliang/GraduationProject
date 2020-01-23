@@ -20,6 +20,7 @@ private:
 template <typename T>
 Node256<T>::Node256()
 {
+  memset(mChildren, 0, sizeof(mChildren));
 }
 
 template <typename T>

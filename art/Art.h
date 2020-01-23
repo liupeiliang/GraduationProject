@@ -40,8 +40,19 @@ Art<T>::~Art()
 template <typename T>
 T* Art<T>::Find(const char* key) const
 {
-  // TODO
-  
+  // incomplete
+  Node<T>* now = mRoot;
+  Node<T>** child;
+
+  int depth = 0, keyLen = std::strlen(key) + 1;
+  while(now != nullptr){
+    if(now->IsLeaf()){
+      if((LeafNode<T>)now->LeafMatch(key))
+        return (LeafNode<T>)now->mValue;
+      else return nullptr;
+    }
+    
+  }
   return nullptr;
 }
 

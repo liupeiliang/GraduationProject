@@ -21,6 +21,8 @@ private:
 template <typename T>
 Node16<T>::Node16()
 {
+  memset(mKey, 0, sizeof(mKey));
+  memset(mChildren, 0, sizeof(mChildren));
 }
 
 template <typename T>
