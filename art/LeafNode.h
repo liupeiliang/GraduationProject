@@ -34,9 +34,9 @@ template <typename T>
 bool LeafNode<T>::LeafMatch(const char* key) const
 {
   int keyLen = std::strlen(key);
-  if(keyLen != mKeyLen) return false;
-  for(int i = 0; i < keyLen; i++){
-    if(key[i] != mKey[i]) return false;
+  if (keyLen != mKeyLen) return false;
+  for (int i = 0; i < keyLen; i++) {
+    if (key[i] != mKey[i]) return false;
   }
   return true;
 }

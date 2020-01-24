@@ -14,10 +14,12 @@ public:
   Node4();
   ~Node4();
 
-private:
+  Node<T>** FindChild(const char partialKey) override ;
+  
+public:
   
   Node<T>* mChildren[4];
-  uint8_t mKey[4];
+  char mKey[4];
     
 };
 
@@ -31,6 +33,16 @@ Node4<T>::Node4()
 template <typename T>
 Node4<T>::~Node4()
 {
+}
+
+template <typename T>
+Node<T>** Node4<T>::FindChild(const char partialKey)
+{
+  for (int i = 0; i < this->mChildrenNum; i++) {
+    if(mKey[i] == partialKey)
+      return &mChildren[i];
+  }
+  return nullptr;
 }
 
 #endif //_Node4_H

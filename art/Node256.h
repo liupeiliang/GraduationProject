@@ -10,7 +10,9 @@ public:
   Node256();
   ~Node256();
 
-private:
+  Node<T>** FindChild(const char partialKey) override;
+  
+public:
 
   Node<T>* mChildren[256];
   
@@ -26,6 +28,14 @@ Node256<T>::Node256()
 template <typename T>
 Node256<T>::~Node256()
 {
+}
+
+template <typename T>
+Node<T>** Node256<T>::FindChild(const char partialKey)
+{
+  Node<T>* tem = mChildren[partialKey];
+  if(tem == nullptr) return nullptr;
+  return &tem;
 }
 
 

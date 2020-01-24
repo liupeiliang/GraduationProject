@@ -45,12 +45,30 @@ T* Art<T>::Find(const char* key) const
   Node<T>** child;
 
   int depth = 0, keyLen = std::strlen(key) + 1;
-  while(now != nullptr){
-    if(now->IsLeaf()){
-      if((LeafNode<T>)now->LeafMatch(key))
+  
+  while (now != nullptr) {
+    
+    if (now->IsLeaf()) {
+      if ((LeafNode<T>)now->LeafMatch(key))
         return (LeafNode<T>)now->mValue;
       else return nullptr;
     }
+
+    if ((InnerNode<T>)now->mPrefixLen > 0) {
+      
+      int prefixLen =
+        (InnerNode<T>)now->CheckPrefix(key, keyLen, depth);
+      
+      if (prefixLen !=
+          min((InnerNode<T>)now->mPrefixLen, MAX_PREFIX_LEN))
+        return nullptr;
+
+      depth = depth + prefixLen;
+    }
+
+    child = (InnerNode<T>)now->FindChild(key[depth]);
+    now = (child) ? (*child) : nullptr;
+    depth++;
     
   }
   return nullptr;

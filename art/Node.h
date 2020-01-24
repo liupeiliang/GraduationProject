@@ -7,6 +7,7 @@
 #define NODE16 1
 #define NODE48 2
 #define NODE256 3
+#define MAX_PREFIX_LEN 4
 
 template <typename T> class Node{
 public:

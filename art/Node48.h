@@ -10,10 +10,12 @@ public:
   Node48();
   ~Node48();
 
-private:
+  Node<T>** FindChild(const char partialKey) override;
+  
+public:
 
   Node<T>* mChildren[48];
-  uint8_t mKey[256];
+  uint8_t mIndex[256];
   
 };
 
@@ -21,7 +23,7 @@ private:
 template <typename T>
 Node48<T>::Node48()
 {
-  memset(mKey, 0, sizeof(mKey));
+  memset(mIndex, 0, sizeof(mIndex));
   memset(mChildren, 0, sizeof(mChildren));
 }
 
@@ -30,5 +32,12 @@ Node48<T>::~Node48()
 {
 }
 
+template <typename T>
+Node<T>** Node48<T>::FindChild(const char partialKey)
+{
+  uint8_t index = mIndex[partialKey + 128];
+  if (index > 0) return &mChildren[index];
+  return nullptr;
+}
 
 #endif //_Node48_H
