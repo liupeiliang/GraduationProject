@@ -3,6 +3,8 @@
 
 #include "Node.h"
 
+#pragma pack(4)
+
 template <typename T>
 class LeafNode : public Node<T>{
 public:
@@ -15,8 +17,8 @@ public:
 private:
 
   T* mValue;
-  char mKey[];
   int mKeyLen;
+  char mKey[];
 };
 
 

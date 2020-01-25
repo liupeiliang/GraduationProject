@@ -1,18 +1,16 @@
 #include <gtest/gtest.h>
 #include <bits/stdc++.h>
-#include "../art/Art.h"
+#include "../art/LeafNode.h"
 
 using namespace std;
-
-class ArtTest : public ::testing::Test{
+class LeafNodeTest : public ::testing::Test
+{
 protected:
   void SetUp() override {}
   void TearDown() override {}
 };
 
-
-TEST_F(ArtTest, Test1)
+TEST_F(LeafNodeTest, TestSize)
 {
-  Art<int> art;
+  ASSERT_EQ(sizeof(LeafNode<int>), 12);
 }
-
