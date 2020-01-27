@@ -12,8 +12,9 @@ public:
   ~LeafNode();
 
   bool IsLeaf() const override { return true; }
-  bool LeafMatch(const char* key) const ;
-    
+  bool LeafMatch(const char* key, int keyLen) const ;
+  int MatchPoint(const char* key, int keyLen, int depth) const;
+  
 private:
 
   T* mValue;
@@ -33,9 +34,8 @@ LeafNode<T>::~LeafNode()
 }
 
 template <typename T>
-bool LeafNode<T>::LeafMatch(const char* key) const
+bool LeafNode<T>::LeafMatch(const char* key, int keyLen) const
 {
-  int keyLen = std::strlen(key);
   if (keyLen != mKeyLen) return false;
   for (int i = 0; i < keyLen; i++) {
     if (key[i] != mKey[i]) return false;
@@ -43,5 +43,17 @@ bool LeafNode<T>::LeafMatch(const char* key) const
   return true;
 }
 
+template <typename T>
+int LeafNode<T>::MatchPoint(const char* key, int keyLen, int depth) const
+{
+  int Left = std::min(keyLen, mKeyLen);
+  for (int i = depth; i < Left; i++) {
+    if (key[i] != mKey[i]) return i;
+  }
+  if (keyLen == mKeyLen) return -1;
+  // 此时一个串是另一个的前缀，理论上该情况不可能出现
+  // else return Left + 1;
+  throw std::runtime_error("LeafNode::MatchPoint: prefix error");
+}
 
 #endif //_LeafNode_H

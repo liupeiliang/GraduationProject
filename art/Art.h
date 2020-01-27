@@ -51,18 +51,21 @@ T* Art<T>::Find(const char* key) const
   int depth = 0, keyLen = std::strlen(key) + 1;
   
   while (now != nullptr) {
-    
+
+    // 当前节点为叶节点，完全匹配 / 部分匹配
     if (now->IsLeaf()) {
-      if (((LeafNode<T>*)now)->LeafMatch(key))
+      if (((LeafNode<T>*)now)->LeafMatch(key, keyLen))
         return ((LeafNode<T>*)now)->mValue;
       else return nullptr;
     }
 
+    // 存在压缩前缀，进行匹配
     if (((InnerNode<T>*)now)->mPrefixLen > 0) {
       
       int prefixLen =
         ((InnerNode<T>*)now)->CheckPrefix(key, keyLen, depth);
-      
+
+      // 判断是否完全匹配
       if (prefixLen !=
           min(((InnerNode<T>*)now)->mPrefixLen, MAX_PREFIX_LEN))
         return nullptr;
@@ -72,7 +75,7 @@ T* Art<T>::Find(const char* key) const
 
     child = ((InnerNode<T>*)now)->FindChild(key[depth]);
     now = (child) ? (*child) : nullptr;
-    depth++;
+    depth++; // 走到child边上还有一个字符
     
   }
   return nullptr;
@@ -82,10 +85,35 @@ template <typename T>
 void Art<T>::Insert(const char* key, T* value)
 {
   int keyLen = strlen(key) + 1, depth = 0;
+
+  // 根节点为null即第一次插入
   if (mRoot == nullptr) {
     mRoot = (Node<T>*)NewLeafNode(key, keyLen, value);
-
     return;
+  }
+
+  Node<T>** now = &mRoot;
+  Node<T>** child;
+
+  while (true) {
+
+    
+    // 如果当前节点到达节点为叶节点
+    if (now->IsLeaf()) {
+      
+      //两种情况：完全匹配 or 部分匹配新建节点
+      int pos = ((LeafNode<T>*)now)->MatchPoint(key, keyLen, depth);
+      
+      if (pos == -1) {
+        // 完全匹配，此时替换原value
+        ((LeafNode<T>*)now)->mValue = value;
+        return;
+      }
+
+      // 部分匹配，新建分叉节点和两个叶节点
+      
+    }
+    
   }
 }
 
