@@ -10,7 +10,8 @@ public:
   Node48();
   ~Node48();
 
-  Node<T>** FindChild(const char partialKey) override;
+  Node<T>** FindChild(const char partialKey) override ;
+  void AddChild(char partialKey, Node<T>* child) override ;
   
 public:
 
@@ -38,6 +39,16 @@ Node<T>** Node48<T>::FindChild(const char partialKey)
   uint8_t index = mIndex[partialKey + 128];
   if (index > 0) return &mChildren[index];
   return nullptr;
+}
+
+template <typename T>
+void Node48<T>::AddChild(char partialKey, Node<T>* child)
+{
+  mChildren[this->mChildrenNum] = child;
+
+  BARRIER();
+
+  mIndex[partialKey + 128] = this->mChildrenNum++;
 }
 
 #endif //_Node48_H

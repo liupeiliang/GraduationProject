@@ -2,6 +2,8 @@
 #define _Node_H
 
 #include <bits/stdc++.h>
+#include <memory.h>
+#include <cstddef>
 
 #define NODE4 0
 #define NODE16 1
@@ -10,6 +12,7 @@
 #define LEAFNODE 4
 
 #define MAX_PREFIX_LEN 4
+#define BARRIER() __asm__ __volatile__("": : :"memory")
 
 template <typename T> class Node{
 public:

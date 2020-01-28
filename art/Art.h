@@ -111,6 +111,7 @@ void Art<T>::Insert(const char* key, T* value)
       }
 
       // 部分匹配，新建分叉节点和两个叶节点
+      Node4<T>* newParent = mNodeAllocator->NewNode(NODE4);
       
     }
     
