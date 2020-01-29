@@ -12,6 +12,7 @@ public:
 
   Node<T>** FindChild(const char partialKey) override ;
   void AddChild(char partialKey, Node<T>* child) override ;
+  Node<T>* MinChild() override ;
   
 public:
 
@@ -54,6 +55,12 @@ void Node16<T>::AddChild(char partialKey, Node<T>* child)
 
   ++this->mChildrenNum;
   
+}
+
+template <typename T>
+Node<T>* Node16<T>::MinChild()
+{
+  return mChildren[0];
 }
 
 #endif //_Node16_H

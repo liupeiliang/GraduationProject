@@ -11,13 +11,17 @@ public:
   Art();
   ~Art();
 
-  T* Find(const char* key) const ;
-  void Insert(const char* key, T* value) ;
-  ArtIterator SearchPrefix(const char* prefix) ;
+  T* Find(const char* key) const;
+  void Insert(const char* key, T* value);
+  ArtIterator SearchPrefix(const char* prefix);
 
 private:
 
-  LeafNode<T>* NewLeafNode(const char* key, int keyLen, T* value) ;
+  LeafNode<T>* NewLeafNode(const char* key, int keyLen, T* value);
+  int CheckPrefixPes(Node<T>* now, const char* key,
+                     int keyLen, int depth) const;
+  LeafNode<T>* MinLeaf(Node<T>* now);
+
   
 private:
   
@@ -61,9 +65,10 @@ T* Art<T>::Find(const char* key) const
 
     // 存在压缩前缀，进行匹配
     if (((InnerNode<T>*)now)->mPrefixLen > 0) {
-      
+
+      // 查找时只对存储前缀进行乐观匹配即可
       int prefixLen =
-        ((InnerNode<T>*)now)->CheckPrefix(key, keyLen, depth);
+        ((InnerNode<T>*)now)->CheckPrefixOpt(key, keyLen, depth);
 
       // 判断是否完全匹配
       if (prefixLen !=
@@ -100,18 +105,41 @@ void Art<T>::Insert(const char* key, T* value)
     
     // 如果当前节点到达节点为叶节点
     if (now->IsLeaf()) {
-      
+
+      LeafNode<T>* now1 = (LeafNode<T>*)now;
       //两种情况：完全匹配 or 部分匹配新建节点
-      int pos = ((LeafNode<T>*)now)->MatchPoint(key, keyLen, depth);
+      int pos = now1->MatchPoint(key, keyLen, depth);
       
       if (pos == -1) {
         // 完全匹配，此时替换原value
-        ((LeafNode<T>*)now)->mValue = value;
+        now1->mValue = value;
         return;
       }
 
-      // 部分匹配，新建分叉节点和两个叶节点
+      // 部分匹配，新建分叉节点和叶节点
       Node4<T>* newParent = mNodeAllocator->NewNode(NODE4);
+      LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
+
+      newParent->mPrefixLen = pos;
+      memcpy(newParent->mKey, key+depth, min(MAX_PREFIX_LEN, pos));
+      newParent->AddChild(key[depth+pos], leafNode);
+      newParent->AddChild(now1->mKey[depth+pos]);
+
+      BARRIER();
+
+      // 最后修改父节点指针
+      *now = newParent;
+      return;
+    }
+
+    // 此时now必定为InnerNode
+    InnerNode<T>* now2 = (InnerNode<T>*)now;
+    // 如果now有prefix
+    if (now2->mPrefixLen > 0) {
+
+      // 插入时需要做悲观的完全匹配
+      int pos = CheckPrefixPes(now, key, keyLen, depth);
+      
       
     }
     
@@ -133,6 +161,45 @@ LeafNode<T>* Art<T>::NewLeafNode(const char* key, int keyLen, T* value)
   tem->mValue = value;
   memcpy(tem->mKey, key, keyLen);
   return nullptr;
+}
+
+
+template <typename T>
+int Art<T>::CheckPrefixPes(Node<T>* now, const char* key,
+                           int keyLen, int depth) const
+{
+  InnerNode<T>* now2 = (InnerNode<T>*)now;
+  // 先判断当前节点已存前缀是否匹配
+  int mx = std::min((int)std::min((uint8_t)MAX_PREFIX_LEN,
+                                  now2->mPrefixLen),
+                    keyLen - depth);
+  int i;
+  for (i = 0; i < mx; i++) {
+    if (key[depth+i] != now2->mPrefix[i])
+      return i;
+  }
+
+  // 若已存前缀完全匹配，需要找到一个叶节点进行匹配
+  if (now->mPrefixLen > MAX_PREFIX_LEN) {
+    // TODO: check again
+    LeafNode<T>* l = MinLeaf(now);
+    mx = std::min(l->mKeyLen, keyLen) - depth;
+    for (; i < mx; i++) {
+      if (l->key[depth+i] != key[depth+i])
+        return i;
+    }
+  }
+  
+  return i;
+}
+
+template <typename T>
+LeafNode<T>* Art<T>::MinLeaf(Node<T>* now)
+{
+  if (now == nullptr) return nullptr;
+  if (now->IsLeaf()) return (LeafNode<T>*)now;
+
+  return MinLeaf( ((InnerNode<T>*)now)->MinChild() );
 }
 
 #endif //_Art_H

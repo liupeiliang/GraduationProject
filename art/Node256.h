@@ -12,6 +12,7 @@ public:
 
   Node<T>** FindChild(const char partialKey) override ;
   void AddChild(char partialKey, Node<T>* child) override ;
+  Node<T>* MinChild() override ;
   
 public:
 
@@ -44,5 +45,14 @@ void Node256<T>::AddChild(char partialKey, Node<T>* child)
   ++this->mChildrenNum;
 }
 
+template <typename T>
+Node<T>* Node256<T>::MinChild()
+{
+  for (int i = 0; i < 256; i++) {
+    if (mChildren[i] != nullptr)
+      return mChildren[i];
+  }
+  return nullptr;
+}
 
 #endif //_Node256_H
