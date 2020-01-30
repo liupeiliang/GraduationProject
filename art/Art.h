@@ -147,8 +147,11 @@ void Art<T>::Insert(const char* key, T* value)
         if (child == nullptr) {
           // 没有对应向下节点，新建叶节点，直接插入
           LeafNode<T>* l = NewLeafNode(key, keyLen, value);
-          // need to grow
-          now->AddChild(key[depth], l);
+          // 若插入时发现节点已满，需要扩张
+          if (now2->IsFull()) {
+//            InnerNode<T>* newNow = Grow(now2);
+          }
+          else now2->AddChild(key[depth], l);
           return;
         }
 

@@ -14,6 +14,7 @@ public:
   void AddChild(char partialKey, Node<T>* child) override;
   Node<T>* MinChild() override;
   bool IsFull() override;
+  int NodeType() override;
   
 public:
 
@@ -60,6 +61,12 @@ template <typename T>
 bool Node256<T>::IsFull()
 {
   return (this->mChildrenNum == 256);
+}
+
+template <typename T>
+int Node256<T>::NodeType()
+{
+  return NODE256;
 }
 
 #endif //_Node256_H

@@ -17,6 +17,7 @@ public:
   virtual void AddChild(char partialKey, Node<T>* child) = 0;
   virtual Node<T>* MinChild() = 0;
   virtual bool IsFull() = 0;
+  virtual int NodeType() = 0;
   
 public:
   

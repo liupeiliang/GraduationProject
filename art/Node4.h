@@ -18,6 +18,7 @@ public:
   void AddChild(char partialKey, Node<T>* child) override;
   Node<T>* MinChild() override;
   bool IsFull() override;
+  int NodeType() override;
   
 public:
   
@@ -72,6 +73,12 @@ template <typename T>
 bool Node4<T>::IsFull()
 {
   return (this->mChildrenNum == 4);
+}
+
+template <typename T>
+int Node4<T>::NodeType()
+{
+  return NODE4;
 }
 
 #endif //_Node4_H

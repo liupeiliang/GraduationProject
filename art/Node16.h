@@ -14,6 +14,7 @@ public:
   void AddChild(char partialKey, Node<T>* child) override;
   Node<T>* MinChild() override;
   bool IsFull() override;
+  int NodeType() override;
   
 public:
 
@@ -68,6 +69,12 @@ template <typename T>
 bool Node16<T>::IsFull()
 {
   return (this->mChildrenNum == 16);
+}
+
+template <typename T>
+int Node16<T>::NodeType()
+{
+  return NODE16;
 }
 
 #endif //_Node16_H
