@@ -152,7 +152,15 @@ void Art<T>::Insert(const char* key, T* value)
           LeafNode<T>* l = NewLeafNode(key, keyLen, value);
           // 若插入时发现节点已满，需要扩张
           if (now2->IsFull()) {
-            InnerNode<T>* newNow = Grow(now2);
+            InnerNode<T>* newNode = Grow(now2);
+            newNode->AddChild(key[depth], l);
+
+            BARRIER();
+            *now = newNode;
+
+            BARRIER();
+            mNodeAllocator->GC(now2);
+            
           }
           else now2->AddChild(key[depth], l);
           return;

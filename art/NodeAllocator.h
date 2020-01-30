@@ -20,13 +20,16 @@ public:
   NodeAllocator();
   ~NodeAllocator();
 
-  Node<T>* NewNode(const int nodeType) ;
+  Node<T>* NewNode(const int nodeType);
+  void GC(InnerNode<T>* now);
   
 private:
   MemoryPool< Node4<T> > mPool4;
   MemoryPool< Node16<T> > mPool16;
   MemoryPool< Node48<T> > mPool48;
   MemoryPool< Node256<T> > mPool256;
+
+  queue<InnerNode<T>*> mGCqueue;
   
 };
 
@@ -56,5 +59,10 @@ Node<T>* NodeAllocator<T>::NewNode(const int nodeType)
   return nullptr;
 }
 
+template <typename T>
+void NodeAllocator<T>::GC(InnerNode<T>* now)
+{
+  mGCqueue.push(now);
+}
 
 #endif //_NodeAllocator_H
