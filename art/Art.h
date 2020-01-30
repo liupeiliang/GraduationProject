@@ -7,6 +7,7 @@
 #include "LeafNode.h"
 
 template <typename T> class Art{
+  
 public:
   Art();
   ~Art();
@@ -15,12 +16,14 @@ public:
   void Insert(const char* key, T* value);
   ArtIterator SearchPrefix(const char* prefix);
 
+  
 private:
 
   LeafNode<T>* NewLeafNode(const char* key, int keyLen, T* value);
   int CheckPrefixPes(Node<T>* now, const char* key,
                      int keyLen, int depth) const;
   LeafNode<T>* MinLeaf(Node<T>* now);
+  InnerNode<T>* Grow(InnerNode<T>* now);
 
   
 private:
@@ -149,7 +152,7 @@ void Art<T>::Insert(const char* key, T* value)
           LeafNode<T>* l = NewLeafNode(key, keyLen, value);
           // 若插入时发现节点已满，需要扩张
           if (now2->IsFull()) {
-//            InnerNode<T>* newNow = Grow(now2);
+            InnerNode<T>* newNow = Grow(now2);
           }
           else now2->AddChild(key[depth], l);
           return;
@@ -222,6 +225,64 @@ LeafNode<T>* Art<T>::MinLeaf(Node<T>* now)
   if (now->IsLeaf()) return (LeafNode<T>*)now;
 
   return MinLeaf( ((InnerNode<T>*)now)->MinChild() );
+}
+
+template <typename T>
+InnerNode<T>* Art<T>::Grow(InnerNode<T>* now)
+{
+  switch (now->NodeType()) {
+    
+  case (NODE4): 
+    Node4<T>* now1 = (Node4<T>*)now;
+    Node16<T>* newNode = mNodeAllocator->NewNode(NODE16);
+    
+    newNode->mPrefixLen = now1->mPrefixLen;
+    newNode->mChildrenNum = now1->mChildrenNum;
+    memcpy(newNode->mPrefix, now1->mPrefix, MAX_PREFIX_LEN);
+    memcpy(newNode->mChildren, now1->mChildren,
+           sizeof(Node<T>*) * now1->mChildrenNum);
+    memcpy(newNode->mKey, now1->mKey, now1->mChildrenNum);
+    return (InnerNode<T>*)newNode;
+
+    
+  case (NODE16):
+    Node16<T>* now2 = (Node16<T>*)now;
+    Node48<T>* newNode2 = mNodeAllocator->NewNode(NODE48);
+
+    newNode2->mPrefixLen = now2->mPrefixLen;
+    newNode2->mChildrenNum = now2->mChildrenNum;
+    memcpy(newNode2->mPrefix, now2->mPrefix, MAX_PREFIX_LEN);
+    memcpy(newNode2->mChildren, now2->mChildren,
+           sizeof(Node<T>*) * now2->mChildrenNum);
+    for (int i = 0; i < now2->mChildrenNum; i++) {
+      newNode2->mIndex[now2->mKey[i] + 128] = i;
+    }
+    return (InnerNode<T>*)newNode2;
+
+    
+  case (NODE48):
+    Node48<T>* now3 = (Node48<T>*)now;
+    Node256<T>* newNode3 = mNodeAllocator->NewNode(NODE256);
+
+    newNode3->mPrefixLen = now3->mPrefixLen;
+    newNode3->mChildrenNum = now3->mChildrenNum;
+    memcpy(newNode3->mPrefix, now3->mPrefix, MAX_PREFIX_LEN);
+    for (int i = 0; i < 256; i++) {
+      if (now3->mIndex[i] != 48) {
+        newNode3->mChildren[i] = now3->mChildren[now3->mIndex[i]];
+      }
+    }
+    return (InnerNode<T>*)newNode3;
+
+    
+  case (NODE256):
+    throw std::runtime_error("Art::Grow(): Grow NODE256!");
+    break;
+
+  default:
+    throw std::runtime_error("Art::Grow(): NodeType error");
+
+  }
 }
 
 #endif //_Art_H

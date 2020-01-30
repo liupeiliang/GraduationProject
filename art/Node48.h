@@ -27,7 +27,7 @@ public:
 template <typename T>
 Node48<T>::Node48()
 {
-  memset(mIndex, 0, sizeof(mIndex));
+  memset(mIndex, 48, sizeof(mIndex));
   memset(mChildren, 0, sizeof(mChildren));
 }
 
@@ -40,7 +40,7 @@ template <typename T>
 Node<T>** Node48<T>::FindChild(const char partialKey)
 {
   uint8_t index = mIndex[partialKey + 128];
-  if (index > 0) return &mChildren[index];
+  if (index < 48) return &mChildren[index];
   return nullptr;
 }
 
