@@ -13,9 +13,10 @@ public:
   bool IsLeaf() const override { return false; }
   int CheckPrefixOpt(const char* key, int keyLen, int depth) const;
   
-  virtual Node<T>** FindChild(const char partialKey) = 0 ;
-  virtual void AddChild(char partialKey, Node<T>* child) = 0 ;
+  virtual Node<T>** FindChild(const char partialKey) = 0;
+  virtual void AddChild(char partialKey, Node<T>* child) = 0;
   virtual Node<T>* MinChild() = 0;
+  virtual bool IsFull() = 0;
   
 public:
   

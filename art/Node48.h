@@ -10,9 +10,10 @@ public:
   Node48();
   ~Node48();
 
-  Node<T>** FindChild(const char partialKey) override ;
-  void AddChild(char partialKey, Node<T>* child) override ;
-  Node<T>* MinChild() override ;
+  Node<T>** FindChild(const char partialKey) override;
+  void AddChild(char partialKey, Node<T>* child) override;
+  Node<T>* MinChild() override;
+  bool IsFull() override;
   
 public:
 
@@ -56,6 +57,12 @@ template <typename T>
 Node<T>* Node48<T>::MinChild()
 {
   return mChildren[0];
+}
+
+template <typename T>
+bool Node48<T>::IsFull()
+{
+  return (this->mChildrenNum == 48);
 }
 
 #endif //_Node48_H

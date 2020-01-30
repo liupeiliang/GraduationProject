@@ -10,9 +10,10 @@ public:
   Node256();
   ~Node256();
 
-  Node<T>** FindChild(const char partialKey) override ;
-  void AddChild(char partialKey, Node<T>* child) override ;
-  Node<T>* MinChild() override ;
+  Node<T>** FindChild(const char partialKey) override;
+  void AddChild(char partialKey, Node<T>* child) override;
+  Node<T>* MinChild() override;
+  bool IsFull() override;
   
 public:
 
@@ -53,6 +54,12 @@ Node<T>* Node256<T>::MinChild()
       return mChildren[i];
   }
   return nullptr;
+}
+
+template <typename T>
+bool Node256<T>::IsFull()
+{
+  return (this->mChildrenNum == 256);
 }
 
 #endif //_Node256_H

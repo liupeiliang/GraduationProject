@@ -63,22 +63,21 @@ T* Art<T>::Find(const char* key) const
       else return nullptr;
     }
 
+    InnerNode<T>* now2 = (InnerNode<T>*)now;
     // 存在压缩前缀，进行匹配
-    if (((InnerNode<T>*)now)->mPrefixLen > 0) {
+    if (now2->mPrefixLen > 0) {
 
       // 查找时只对存储前缀进行乐观匹配即可
-      int prefixLen =
-        ((InnerNode<T>*)now)->CheckPrefixOpt(key, keyLen, depth);
+      int prefixLen = now2->CheckPrefixOpt(key, keyLen, depth);
 
       // 判断是否完全匹配
-      if (prefixLen !=
-          min(((InnerNode<T>*)now)->mPrefixLen, MAX_PREFIX_LEN))
+      if (prefixLen != min(now2->mPrefixLen, MAX_PREFIX_LEN))
         return nullptr;
 
       depth = depth + prefixLen;
     }
 
-    child = ((InnerNode<T>*)now)->FindChild(key[depth]);
+    child = now2->FindChild(key[depth]);
     now = (child) ? (*child) : nullptr;
     depth++; // 走到child边上还有一个字符
     
@@ -123,7 +122,7 @@ void Art<T>::Insert(const char* key, T* value)
       newParent->mPrefixLen = pos;
       memcpy(newParent->mKey, key+depth, min(MAX_PREFIX_LEN, pos));
       newParent->AddChild(key[depth+pos], leafNode);
-      newParent->AddChild(now1->mKey[depth+pos]);
+      newParent->AddChild(now1->mKey[depth+pos], now1);
 
       BARRIER();
 
@@ -136,10 +135,30 @@ void Art<T>::Insert(const char* key, T* value)
     InnerNode<T>* now2 = (InnerNode<T>*)now;
     // 如果now有prefix
     if (now2->mPrefixLen > 0) {
-
+      
       // 插入时需要做悲观的完全匹配
       int pos = CheckPrefixPes(now, key, keyLen, depth);
       
+      if (pos >= now2->mPrefixLen) {
+        // 全部匹配，继续向下
+        depth += now2->mPrefixLen;
+        child = now2->FindChild(key[depth]);
+        
+        if (child == nullptr) {
+          // 没有对应向下节点，新建叶节点，直接插入
+          LeafNode<T>* l = NewLeafNode(key, keyLen, value);
+          // need to grow
+          now->AddChild(key[depth], l);
+          return;
+        }
+
+        ++depth;
+        now = child;
+        continue;
+      }
+
+      // else {
+      // 未全部匹配，需新建节点
       
     }
     

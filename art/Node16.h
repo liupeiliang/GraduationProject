@@ -10,9 +10,10 @@ public:
   Node16();
   ~Node16();
 
-  Node<T>** FindChild(const char partialKey) override ;
-  void AddChild(char partialKey, Node<T>* child) override ;
-  Node<T>* MinChild() override ;
+  Node<T>** FindChild(const char partialKey) override;
+  void AddChild(char partialKey, Node<T>* child) override;
+  Node<T>* MinChild() override;
+  bool IsFull() override;
   
 public:
 
@@ -61,6 +62,12 @@ template <typename T>
 Node<T>* Node16<T>::MinChild()
 {
   return mChildren[0];
+}
+
+template <typename T>
+bool Node16<T>::IsFull()
+{
+  return (this->mChildrenNum == 16);
 }
 
 #endif //_Node16_H
