@@ -156,9 +156,9 @@ void Art<T>::Insert(const char* key, T* value)
     if (now2->mPrefixLen > 0) {
       
       // 插入时需要做悲观的完全匹配
-      int pos = CheckPrefixPes(*now, key, keyLen, depth);
+      int len = CheckPrefixPes(*now, key, keyLen, depth);
       
-      if (pos >= now2->mPrefixLen) {
+      if (len >= now2->mPrefixLen) {
         // 全部匹配，继续向下
         depth += now2->mPrefixLen;
       } else {
@@ -183,23 +183,25 @@ void Art<T>::Insert(const char* key, T* value)
         Node4<T>* newNode = mNodeAllocator->NewNode(NODE4);
         LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
 
-        newNode->mPrefixLen = pos;
-        memcpy(newNode->mPrefix, now2->mPrefix, min(MAX_PREFIX_LEN, pos));
-        newNode->AddChild(key[depth+pos], leafNode);
+        newNode->mPrefixLen = len;
+        memcpy(newNode->mPrefix, now2->mPrefix, min(MAX_PREFIX_LEN, len));
+        newNode->AddChild(key[depth+len], leafNode);
 
         // 需要调整原来节点的prefix，此时CopyOnWrite，复制原节点修改
+        // TODO: 不用复制prefix部分
         InnerNode<T>* copyNode = CopyNode(now2);
-        copyNode->mPrefixLen -= pos+1;
-        newNode->AddChild(key[depth+pos], copyNode);
+        copyNode->mPrefixLen -= len+1;
       
         if (now2->mPrefixLen <= MAX_PREFIX_LEN) {
           // 所有信息已知，直接修改prefix
-          memmove(copyNode->mPrefix, copyNode->mPrefix + pos + 1,
+          newNode->AddChild(now2->key[len], copyNode);
+          memmove(copyNode->mPrefix, copyNode->mPrefix + len + 1,
                   std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );  
         } else {
           // 此时存在未知信息，需要从MinLeaf找到未知前缀部分
           LeafNode<T>* l = MinLeaf(*now);
-          memcpy(copyNode->mPrefix, l->mKey + depth + pos + 1,
+          newNode->AddChild(l->mKey[depth+len], copyNode);
+          memcpy(copyNode->mPrefix, l->mKey + depth + len + 1,
                  std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );
         }
 
