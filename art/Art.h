@@ -51,7 +51,7 @@ Art<T>::~Art()
 template <typename T>
 T* Art<T>::Find(const char* key) const
 {
-  // TODO: 等待全面检查
+  // TODO: 等待检查2nd
   
   Node<T>* now = mRoot;
   Node<T>** child;
@@ -78,7 +78,7 @@ T* Art<T>::Find(const char* key) const
       if (prefixLen != min(now2->mPrefixLen, MAX_PREFIX_LEN))
         return nullptr;
 
-      depth = depth + prefixLen;
+      depth = depth + now2->mPrefixLen;
     }
 
     child = now2->FindChild(key[depth]);
