@@ -161,103 +161,103 @@ void Art<T>::Insert(const char* key, T* value)
       if (pos >= now2->mPrefixLen) {
         // 全部匹配，继续向下
         depth += now2->mPrefixLen;
-        child = now2->FindChild(key[depth]);
-        
-        if (child == nullptr) {
-          // 没有对应向下节点，新建叶节点，直接插入
-          /*
-           * no child associated with the next partial key.
-           * => create new node with value to insert.
-           * => new node becomes current node's child.
-           *
-           *      *(aa)->Ø              *(aa)->Ø
-           *    a /        +[aab,v2]  a /    \ b
-           *     /         ========>   /      \
-           *   (a)->v1               (a)->v1 +()->v2
-           *
-           * from rafaelkallis
-           */
-          LeafNode<T>* l = NewLeafNode(key, keyLen, value);
-          // 若插入时发现节点已满，需要扩张
-          if (now2->IsFull()) {
-            InnerNode<T>* newNode = Grow(now2);
-            newNode->AddChild(key[depth], l);
-
-            BARRIER();
-            *now = newNode;
-
-            BARRIER();
-            mNodeAllocator->GC(now2);
-            
-          }
-          else now2->AddChild(key[depth], l);
-          return;
-        }
-
-        /* propagate down and repeat:
+      } else {
+        // 未全部匹配，需新建节点
+        /* prefix mismatch:
+         * => new parent node with common prefix and no associated value.
+         * => new node with value to insert.
+         * => current and new node become children of new parent node.
          *
-         *     *(aa)->Ø                   (aa)->Ø
-         *   a /    \ b    +[aaba,v3]  a /    \ b     repeat
-         *    /      \     =========>   /      \     ========>  ...
-         *  (a)->v1  ()->v2           (a)->v1 *()->v2
+         *        |                        |
+         *      *(aa)                    +(a)->Ø
+         *    a /    \ b     +[ab,v3]  a /   \ b
+         *     /      \      =======>   /     \
+         *  (aa)->v1  ()->v2          *()->Ø +()->v3
+         *                          a /   \ b
+         *                           /     \
+         *                        (aa)->v1 ()->v2
+         *                        /|\      /|\
          *
          * from rafaelkallis
          */
-        ++depth;
-        now = child;
-        continue;
-      }
+        Node4<T>* newNode = mNodeAllocator->NewNode(NODE4);
+        LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
 
-      // else {
-      // 未全部匹配，需新建节点
-      /* prefix mismatch:
-       * => new parent node with common prefix and no associated value.
-       * => new node with value to insert.
-       * => current and new node become children of new parent node.
+        newNode->mPrefixLen = pos;
+        memcpy(newNode->mPrefix, now2->mPrefix, min(MAX_PREFIX_LEN, pos));
+        newNode->AddChild(key[depth+pos], leafNode);
+
+        // 需要调整原来节点的prefix，此时CopyOnWrite，复制原节点修改
+        InnerNode<T>* copyNode = CopyNode(now2);
+        copyNode->mPrefixLen -= pos+1;
+        newNode->AddChild(key[depth+pos], copyNode);
+      
+        if (now2->mPrefixLen <= MAX_PREFIX_LEN) {
+          // 所有信息已知，直接修改prefix
+          memmove(copyNode->mPrefix, copyNode->mPrefix + pos + 1,
+                  std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );  
+        } else {
+          // 此时存在未知信息，需要从MinLeaf找到未知前缀部分
+          LeafNode<T>* l = MinLeaf(*now);
+          memcpy(copyNode->mPrefix, l->mKey + depth + pos + 1,
+                 std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );
+        }
+
+        // 最后修改父节点指针以保证线程安全
+        BARRIER();
+        *now = newNode;
+
+        return;
+      }
+    }
+
+    child = now2->FindChild(key[depth]);
+        
+    if (child == nullptr) {
+      // 没有对应向下节点，新建叶节点，直接插入
+      /*
+       * no child associated with the next partial key.
+       * => create new node with value to insert.
+       * => new node becomes current node's child.
        *
-       *        |                        |
-       *      *(aa)                    +(a)->Ø
-       *    a /    \ b     +[ab,v3]  a /   \ b
-       *     /      \      =======>   /     \
-       *  (aa)->v1  ()->v2          *()->Ø +()->v3
-       *                          a /   \ b
-       *                           /     \
-       *                        (aa)->v1 ()->v2
-       *                        /|\      /|\
+       *      *(aa)->Ø              *(aa)->Ø
+       *    a /        +[aab,v2]  a /    \ b
+       *     /         ========>   /      \
+       *   (a)->v1               (a)->v1 +()->v2
        *
        * from rafaelkallis
        */
-      Node4<T>* newNode = mNodeAllocator->NewNode(NODE4);
-      LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
+      LeafNode<T>* l = NewLeafNode(key, keyLen, value);
+      // 若插入时发现节点已满，需要扩张
+      if (now2->IsFull()) {
+        InnerNode<T>* newNode = Grow(now2);
+        newNode->AddChild(key[depth], l);
 
-      newNode->mPrefixLen = pos;
-      memcpy(newNode->mPrefix, now2->mPrefix, min(MAX_PREFIX_LEN, pos));
-      newNode->AddChild(key[depth+pos], leafNode);
+        BARRIER();
+        *now = newNode;
 
-      // 需要调整原来节点的prefix，此时CopyOnWrite，复制原节点修改
-      InnerNode<T>* copyNode = CopyNode(now2);
-      copyNode->mPrefixLen -= pos+1;
-      newNode->AddChild(key[depth+pos], copyNode);
-      
-      if (now2->mPrefixLen <= MAX_PREFIX_LEN) {
-        // 所有信息已知，直接修改prefix
-        memmove(copyNode->mPrefix, copyNode->mPrefix + pos + 1,
-                std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );  
-      } else {
-        // 此时存在未知信息，需要从MinLeaf找到未知前缀部分
-        LeafNode<T>* l = MinLeaf(*now);
-        memcpy(copyNode->mPrefix, l->mKey + depth + pos + 1,
-               std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );
+        BARRIER();
+        mNodeAllocator->GC(now2);
+            
       }
-
-      // 最后修改父节点指针以保证线程安全
-      BARRIER();
-      *now = newNode;
-
+      else now2->AddChild(key[depth], l);
       return;
     }
+
+    /* propagate down and repeat:
+     *
+     *     *(aa)->Ø                   (aa)->Ø
+     *   a /    \ b    +[aaba,v3]  a /    \ b     repeat
+     *    /      \     =========>   /      \     ========>  ...
+     *  (a)->v1  ()->v2           (a)->v1 *()->v2
+     *
+     * from rafaelkallis
+     */
+    ++depth;
+    now = child;
     
-  }
+  } // while(){}
+  
 }
 
 template <typename T>
