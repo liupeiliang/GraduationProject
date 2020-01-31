@@ -24,7 +24,7 @@ private:
                      int keyLen, int depth) const;
   LeafNode<T>* MinLeaf(Node<T>* now);
   InnerNode<T>* Grow(InnerNode<T>* now);
-
+  InnerNode<T>* CopyNode(InnerNode<T>* now);
   
 private:
   
@@ -51,7 +51,8 @@ Art<T>::~Art()
 template <typename T>
 T* Art<T>::Find(const char* key) const
 {
-  // incomplete
+  // TODO: 等待全面检查
+  
   Node<T>* now = mRoot;
   Node<T>** child;
 
@@ -91,6 +92,9 @@ T* Art<T>::Find(const char* key) const
 template <typename T>
 void Art<T>::Insert(const char* key, T* value)
 {
+  // TODO: 1. 等待全面检查
+  //       2. 注意n和child为Node<T>**
+  
   int keyLen = strlen(key) + 1, depth = 0;
 
   // 根节点为null即第一次插入
@@ -108,39 +112,51 @@ void Art<T>::Insert(const char* key, T* value)
     // 如果当前节点到达节点为叶节点
     if (now->IsLeaf()) {
 
-      LeafNode<T>* now1 = (LeafNode<T>*)now;
+      LeafNode<T>* now1 = (LeafNode<T>*)(*now);
       //两种情况：完全匹配 or 部分匹配新建节点
       int pos = now1->MatchPoint(key, keyLen, depth);
       
       if (pos == -1) {
         // 完全匹配，此时替换原value
+        /* exact match:
+         * => "replace"
+         * => replace value of current node.
+         * => return old value to caller to handle.
+         *        _                             _
+         *        |                             |
+         *       (aa)                          (aa)
+         *    a /    \ b     +[aaaaa,v3]    a /    \ b
+         *     /      \      ==========>     /      \
+         * *(aa)->v1  ()->v2             *(aa)->v3  ()->v2
+         *
+         * from rafaelkallis
+         */
         now1->mValue = value;
         return;
       }
 
       // 部分匹配，新建分叉节点和叶节点
-      Node4<T>* newParent = mNodeAllocator->NewNode(NODE4);
+      Node4<T>* newNode = mNodeAllocator->NewNode(NODE4);
       LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
 
-      newParent->mPrefixLen = pos;
-      memcpy(newParent->mKey, key+depth, min(MAX_PREFIX_LEN, pos));
-      newParent->AddChild(key[depth+pos], leafNode);
-      newParent->AddChild(now1->mKey[depth+pos], now1);
-
-      BARRIER();
+      newNode->mPrefixLen = pos;
+      memcpy(newNode->mKey, key+depth, min(MAX_PREFIX_LEN, pos));
+      newNode->AddChild(key[depth+pos], leafNode);
+      newNode->AddChild(now1->mKey[depth+pos], now1);
 
       // 最后修改父节点指针
-      *now = newParent;
+      BARRIER();
+      *now = newNode;
       return;
     }
 
     // 此时now必定为InnerNode
-    InnerNode<T>* now2 = (InnerNode<T>*)now;
+    InnerNode<T>* now2 = (InnerNode<T>*)(*now);
     // 如果now有prefix
     if (now2->mPrefixLen > 0) {
       
       // 插入时需要做悲观的完全匹配
-      int pos = CheckPrefixPes(now, key, keyLen, depth);
+      int pos = CheckPrefixPes(*now, key, keyLen, depth);
       
       if (pos >= now2->mPrefixLen) {
         // 全部匹配，继续向下
@@ -149,6 +165,18 @@ void Art<T>::Insert(const char* key, T* value)
         
         if (child == nullptr) {
           // 没有对应向下节点，新建叶节点，直接插入
+          /*
+           * no child associated with the next partial key.
+           * => create new node with value to insert.
+           * => new node becomes current node's child.
+           *
+           *      *(aa)->Ø              *(aa)->Ø
+           *    a /        +[aab,v2]  a /    \ b
+           *     /         ========>   /      \
+           *   (a)->v1               (a)->v1 +()->v2
+           *
+           * from rafaelkallis
+           */
           LeafNode<T>* l = NewLeafNode(key, keyLen, value);
           // 若插入时发现节点已满，需要扩张
           if (now2->IsFull()) {
@@ -166,6 +194,15 @@ void Art<T>::Insert(const char* key, T* value)
           return;
         }
 
+        /* propagate down and repeat:
+         *
+         *     *(aa)->Ø                   (aa)->Ø
+         *   a /    \ b    +[aaba,v3]  a /    \ b     repeat
+         *    /      \     =========>   /      \     ========>  ...
+         *  (a)->v1  ()->v2           (a)->v1 *()->v2
+         *
+         * from rafaelkallis
+         */
         ++depth;
         now = child;
         continue;
@@ -173,7 +210,51 @@ void Art<T>::Insert(const char* key, T* value)
 
       // else {
       // 未全部匹配，需新建节点
+      /* prefix mismatch:
+       * => new parent node with common prefix and no associated value.
+       * => new node with value to insert.
+       * => current and new node become children of new parent node.
+       *
+       *        |                        |
+       *      *(aa)                    +(a)->Ø
+       *    a /    \ b     +[ab,v3]  a /   \ b
+       *     /      \      =======>   /     \
+       *  (aa)->v1  ()->v2          *()->Ø +()->v3
+       *                          a /   \ b
+       *                           /     \
+       *                        (aa)->v1 ()->v2
+       *                        /|\      /|\
+       *
+       * from rafaelkallis
+       */
+      Node4<T>* newNode = mNodeAllocator->NewNode(NODE4);
+      LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
+
+      newNode->mPrefixLen = pos;
+      memcpy(newNode->mPrefix, now2->mPrefix, min(MAX_PREFIX_LEN, pos));
+      newNode->AddChild(key[depth+pos], leafNode);
+
+      // 需要调整原来节点的prefix，此时CopyOnWrite，复制原节点修改
+      InnerNode<T>* copyNode = CopyNode(now2);
+      copyNode->mPrefixLen -= pos+1;
+      newNode->AddChild(key[depth+pos], copyNode);
       
+      if (now2->mPrefixLen <= MAX_PREFIX_LEN) {
+        // 所有信息已知，直接修改prefix
+        memmove(copyNode->mPrefix, copyNode->mPrefix + pos + 1,
+                std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );  
+      } else {
+        // 此时存在未知信息，需要从MinLeaf找到未知前缀部分
+        LeafNode<T>* l = MinLeaf(*now);
+        memcpy(copyNode->mPrefix, l->mKey + depth + pos + 1,
+               std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );
+      }
+
+      // 最后修改父节点指针以保证线程安全
+      BARRIER();
+      *now = newNode;
+
+      return;
     }
     
   }
@@ -291,6 +372,14 @@ InnerNode<T>* Art<T>::Grow(InnerNode<T>* now)
     throw std::runtime_error("Art::Grow(): NodeType error");
 
   }
+}
+
+template <typename T>
+InnerNode<T>* Art<T>::CopyNode(InnerNode<T>* now)
+{
+  InnerNode<T>* newNode = mNodeAllocator->NewNode(now->NodeType());
+  (&newNode) = (&now);
+  return newNode;
 }
 
 #endif //_Art_H
