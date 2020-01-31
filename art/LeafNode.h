@@ -46,14 +46,14 @@ bool LeafNode<T>::LeafMatch(const char* key, int keyLen) const
 template <typename T>
 int LeafNode<T>::MatchPoint(const char* key, int keyLen, int depth) const
 {
-  int Left = std::min(keyLen, mKeyLen);
-  for (int i = depth; i < Left; i++) {
+  int mx = std::min(keyLen, mKeyLen);
+  for (int i = depth; i < mx; i++) {
     if (key[i] != mKey[i]) return i;
   }
   if (keyLen == mKeyLen) return -1;
   // 此时一个串是另一个的前缀，理论上该情况不可能出现
   // else return Left + 1;
-  throw std::runtime_error("LeafNode::MatchPoint: prefix error");
+  throw std::runtime_error("LeafNode::MatchPoint(): prefix error");
 }
 
 #endif //_LeafNode_H

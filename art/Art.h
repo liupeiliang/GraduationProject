@@ -121,7 +121,6 @@ void Art<T>::Insert(const char* key, T* value)
         /* exact match:
          * => "replace"
          * => replace value of current node.
-         * => return old value to caller to handle.
          *        _                             _
          *        |                             |
          *       (aa)                          (aa)
@@ -139,10 +138,11 @@ void Art<T>::Insert(const char* key, T* value)
       Node4<T>* newNode = mNodeAllocator->NewNode(NODE4);
       LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
 
-      newNode->mPrefixLen = pos;
-      memcpy(newNode->mKey, key+depth, min(MAX_PREFIX_LEN, pos));
-      newNode->AddChild(key[depth+pos], leafNode);
-      newNode->AddChild(now1->mKey[depth+pos], now1);
+      newNode->mPrefixLen = pos-depth;
+      memcpy(newNode->mKey, key+depth,
+             min(MAX_PREFIX_LEN, newNode->mPrefixLen));
+      newNode->AddChild(key[pos], leafNode);
+      newNode->AddChild(now1->mKey[pos], now1);
 
       // 最后修改父节点指针
       BARRIER();
