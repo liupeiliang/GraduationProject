@@ -15,7 +15,7 @@ public:
   bool LeafMatch(const char* key, int keyLen) const ;
   int MatchPoint(const char* key, int keyLen, int depth) const;
   
-private:
+public:
 
   T* mValue;
   int mKeyLen;
