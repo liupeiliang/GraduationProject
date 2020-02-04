@@ -45,6 +45,55 @@ Art<T>::Art()
 template <typename T>
 Art<T>::~Art()
 {
+  // 回收所有叶节点
+  
+  queue<Node<T>*> q;
+  if (mRoot != nullptr) q.push(mRoot);
+
+  while (!q.empty()) {
+    
+    Node<T>* now = q.front();
+    q.pop();
+    if (now == nullptr) continue;
+    
+    if (now->IsLeaf()) {
+      free((LeafNode<T>*)now);
+    } else {
+      
+      InnerNode<T>* now2;
+      now2 = (InnerNode<T>*)now;
+      int cn = now2->mChildrenNum;
+      
+      switch (now2->NodeType()) {
+      case (NODE4): {
+        for (int i = 0; i < cn; i++) 
+          q.push(((Node4<T>*)now)->mChildren[i]);
+        break;
+      }
+      case (NODE16): {
+        for (int i = 0; i < cn; i++) 
+          q.push(((Node16<T>*)now)->mChildren[i]);
+        break;
+      }
+      case (NODE48): {
+        for (int i = 0; i < cn; i++) 
+          q.push(((Node48<T>*)now)->mChildren[i]);
+        break;
+      }
+      case (NODE256): {
+        for (int i = 0; i < 256; i++) 
+          if (((Node256<T>*)now)->mChildren[i] != nullptr)
+            q.push(((Node256<T>*)now)->mChildren[i]);
+        break;
+      }
+      default: {
+        std::cout << "~Art() NodeType error" << std::endl;
+      }
+      }
+    }
+  }
+
+  // 直接通过回收内存池回收所有中间结点
   delete mNodeAllocator;
 }
 
