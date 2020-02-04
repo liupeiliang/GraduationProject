@@ -14,5 +14,5 @@ TEST_F(Node4Test, Test1)
 {
 //  cout<<sizeof(Node4<int>)<<"     !!"<<endl;
 //  Node4<int>* tem = new Node4<int>();
-  ASSERT_EQ(sizeof(Node4<int>), 56);
+  ASSERT_EQ(sizeof(Node4<int>), 64);
 }

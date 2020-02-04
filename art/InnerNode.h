@@ -22,7 +22,7 @@ public:
 public:
   
   uint8_t mChildrenNum;
-  uint8_t mPrefixLen;
+  uint8_t mPrefixLen; // TODO : 改为uint32_t
   char mPrefix[MAX_PREFIX_LEN];
 
 };

@@ -188,7 +188,7 @@ void Art<T>::Insert(const char* key, T* value)
       LeafNode<T>* leafNode = NewLeafNode(key, keyLen, value);
 
       newNode->mPrefixLen = pos-depth;
-      memcpy(newNode->mKey, key+depth,
+      memcpy(newNode->mPrefix, key+depth,
              std::min(MAX_PREFIX_LEN, (int)newNode->mPrefixLen));
       newNode->AddChild(key[pos], leafNode);
       newNode->AddChild(now1->mKey[pos], now1);

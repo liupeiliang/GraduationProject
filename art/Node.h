@@ -11,7 +11,7 @@
 #define NODE256 (int)3
 #define LEAFNODE (int)4
 
-#define MAX_PREFIX_LEN 4
+#define MAX_PREFIX_LEN 14
 #define BARRIER() __asm__ __volatile__("": : :"memory")
 
 template <typename T> class Node{
