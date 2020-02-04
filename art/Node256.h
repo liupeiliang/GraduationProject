@@ -38,7 +38,7 @@ Node256<T>::~Node256()
 template <typename T>
 Node<T>** Node256<T>::FindChild(const char partialKey)
 {
-  return (mChildren[partialKey] == nullptr) ? nullptr : &mChildren[partialKey];
+  return (mChildren[partialKey+128] == nullptr) ? nullptr : &mChildren[partialKey+128];
 }
 
 template <typename T>

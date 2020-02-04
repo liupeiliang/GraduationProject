@@ -29,7 +29,7 @@ private:
 private:
   
   Node<T>* mRoot;
-  Node<T>* mRootGenerator;
+  Node4<T>* mRootGenerator;
   NodeAllocator<T>* mNodeAllocator;
 
 };
@@ -38,8 +38,8 @@ template <typename T>
 Art<T>::Art()
 {
   mNodeAllocator = new NodeAllocator<T>;
-  mRootGenerator = mNodeAllocator->NewNode(NODE4);
-  mRoot = ((Node4<T>*)mRootGenerator)->mChildren[0];
+  mRootGenerator = (Node4<T>*)mNodeAllocator->NewNode(NODE4);
+  mRoot = mRootGenerator->mChildren[0];
 }
 
 template <typename T>

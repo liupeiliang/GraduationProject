@@ -67,6 +67,43 @@ TEST_F(ArtTest, SimpleInsertAndFindTest)
   ans = art.Find("aabzzzzzz");
   ASSERT_TRUE(ans != nullptr);
   ASSERT_EQ(*ans, v3);  
+
+  int v4 = 999;
+  art.Insert("aabzzzzzz", &v4);
+  ans = art.Find("aabzzzzzz");
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v4);
   
 }
 
+int v[256];
+
+TEST_F(ArtTest, GrowTest)
+{
+  
+  Art<int> art;
+  
+
+  for (int i = -128; i < 128; i++) {
+    if (i == 0) continue;
+    char key[] = "aaaaaaa";
+    key[3] = i;
+    v[i+128] = i;
+
+    art.Insert(key, &v[i+128]);
+  }
+
+  for (int i = -128; i < 128; i++) {
+    if (i == 0) continue;
+    
+    char key[] = "aaaaaaa";
+    key[3] = i;
+
+    int* ans = art.Find(key);
+    ASSERT_TRUE(ans != nullptr);
+    ASSERT_EQ(*ans, v[i+128]);
+  }
+
+  
+  
+}
