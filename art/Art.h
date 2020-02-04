@@ -438,7 +438,7 @@ template <typename T>
 InnerNode<T>* Art<T>::CopyNode(InnerNode<T>* now)
 {
   InnerNode<T>* newNode = (InnerNode<T>*)mNodeAllocator->NewNode(now->NodeType());
-  (*newNode) = (*now);
+  now->CopyNode(newNode);
   return newNode;
 }
 

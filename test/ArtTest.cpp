@@ -11,32 +11,62 @@ protected:
 };
 
 
-TEST_F(ArtTest, Test1)
+TEST_F(ArtTest, SimpleInsertAndFindTest)
 {
   Art<int> art;
   int value = 123;
-  art.Insert("aabbaa", &value);
-  int* ans = art.Find("aabbaa");
+  art.Insert("aaaaabbaa", &value);
+  int* ans = art.Find("aaaaabbaa");
 //  cout << (*ans) << endl;
   ASSERT_TRUE(ans != nullptr);
   ASSERT_EQ(*ans, value);
 
-  ans = art.Find("aabba");
+  ans = art.Find("aaaaabba");
   ASSERT_TRUE(ans == nullptr);
   
   int v2 = 456;
-  art.Insert("aabccc", &v2);
+  art.Insert("aaaaabccc", &v2);
 
-  ans = art.Find("aab");
+  ans = art.Find("aaaaab");
+  ASSERT_TRUE(ans == nullptr);
+
+  ans = art.Find("aaaaabcc");
   ASSERT_TRUE(ans == nullptr);
   
-  ans = art.Find("aabccc");
+  ans = art.Find("aaaaabccc");
   ASSERT_TRUE(ans != nullptr);
   ASSERT_EQ(*ans, v2);
 
-  ans = art.Find("aabbaa");
+  ans = art.Find("aaaaabbaa");
   ASSERT_TRUE(ans != nullptr);
   ASSERT_EQ(*ans, value);
+
+  int v3 = 789;
+  art.Insert("aabzzzzzz", &v3);
+
+  ans = art.Find("aaaaab");
+  ASSERT_TRUE(ans == nullptr);
+
+  ans = art.Find("aaaaabcc");
+  ASSERT_TRUE(ans == nullptr);
+
+  ans = art.Find("aa");
+  ASSERT_TRUE(ans == nullptr);
+
+  ans = art.Find("aabzz");
+  ASSERT_TRUE(ans == nullptr);
+  
+  ans = art.Find("aaaaabccc");
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v2);
+
+  ans = art.Find("aaaaabbaa");
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, value);
+
+  ans = art.Find("aabzzzzzz");
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v3);  
   
 }
 

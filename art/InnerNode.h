@@ -18,6 +18,7 @@ public:
   virtual Node<T>* MinChild() = 0;
   virtual bool IsFull() = 0;
   virtual int NodeType() = 0;
+  virtual void CopyNode(InnerNode<T>* now) = 0;
   
 public:
   

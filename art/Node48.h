@@ -15,6 +15,7 @@ public:
   Node<T>* MinChild() override;
   bool IsFull() override;
   int NodeType() override;
+  void CopyNode(InnerNode<T>* now) override;
   
 public:
 
@@ -70,6 +71,12 @@ template <typename T>
 int Node48<T>::NodeType()
 {
   return NODE48;
+}
+
+template <typename T>
+void Node48<T>::CopyNode(InnerNode<T>* now)
+{
+  memcpy(now, this, sizeof(Node48<T>));
 }
 
 #endif //_Node48_H
