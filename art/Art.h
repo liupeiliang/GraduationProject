@@ -160,7 +160,7 @@ void Art<T>::Insert(const char* key, T* value)
     
     // 如果当前节点到达节点为叶节点
     if ((*now)->IsLeaf()) {
-
+      
       LeafNode<T>* now1 = (LeafNode<T>*)(*now);
       //两种情况：完全匹配 or 部分匹配新建节点
       int pos = now1->MatchPoint(key, keyLen, depth);

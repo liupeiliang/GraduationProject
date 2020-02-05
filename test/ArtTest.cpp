@@ -10,7 +10,6 @@ protected:
   void TearDown() override {}
 };
 
-
 TEST_F(ArtTest, SimpleInsertAndFindTest)
 {
   Art<int> art;
@@ -104,6 +103,44 @@ TEST_F(ArtTest, GrowTest)
     ASSERT_EQ(*ans, v[i+128]);
   }
 
+}
+
+TEST_F(ArtTest, PrefixPessimisticTest)
+{
+  char k1[] = "1234567890123456789";
+  char k2[] = "1234567890123456888";
+  int v1 = 123;
+  int v2 = 456;
   
+  Art<int> art;
+  art.Insert(k1, &v1);
+  art.Insert(k2, &v2);
+
+  int* ans = art.Find(k1);
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v1);
+
+  ans = art.Find(k2);
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v2);
+
+  char k3[] = "1234567890123450789";
+
+  ans = art.Find(k3);
+  ASSERT_TRUE(ans == nullptr);
   
+  int v3 = 789;
+  art.Insert(k3, &v3);
+
+  ans = art.Find(k1);
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v1);
+
+  ans = art.Find(k2);
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v2);
+
+  ans = art.Find(k3);
+  ASSERT_TRUE(ans != nullptr);
+  ASSERT_EQ(*ans, v3);  
 }
