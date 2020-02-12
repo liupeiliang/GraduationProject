@@ -26,7 +26,7 @@ TEST_F(ArtTest, SpeedTest)
     key[i][4] = '\0';
     value[i] = 'a';
   }
-  
+
   clock_t s, t;
   
   s = clock();
