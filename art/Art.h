@@ -12,7 +12,7 @@ public:
   Art();
   ~Art();
 
-  T* Find(const char* key) const;
+  T* Find(const char* key);
   void Insert(const char* key, T* value);
   ArtIterator SearchPrefix(const char* prefix);
 
@@ -24,7 +24,12 @@ private:
                      int keyLen, int depth);
   LeafNode<T>* MinLeaf(Node<T>* now);
   InnerNode<T>* Grow(InnerNode<T>* now);
-  InnerNode<T>* CopyNode(InnerNode<T>* now);
+
+  Node<T>** FindChild(Node<T>* now, char partialKey);
+  void AddChild(Node<T>* now, char partialKey, Node<T>* child);
+  Node<T>* MinChild(Node<T>* now);
+  bool IsFull(Node<T>* now);
+  Node<T>* CopyNode(Node<T>* now);
   
 private:
   
@@ -56,7 +61,7 @@ Art<T>::~Art()
     q.pop();
     if (now == nullptr) continue;
     
-    if (now->IsLeaf()) {
+    if (now->mNodeType == LEAFNODE) {
       free((LeafNode<T>*)now);
     } else {
       
@@ -64,7 +69,7 @@ Art<T>::~Art()
       now2 = (InnerNode<T>*)now;
       int cn = now2->mChildrenNum;
       
-      switch (now2->NodeType()) {
+      switch (now->mNodeType) {
       case (NODE4): {
         for (int i = 0; i < cn; i++) 
           q.push(((Node4<T>*)now)->mChildren[i]);
@@ -98,7 +103,7 @@ Art<T>::~Art()
 }
 
 template <typename T>
-T* Art<T>::Find(const char* key) const
+T* Art<T>::Find(const char* key)
 {
   // TODO: 等待检查2nd
   
@@ -110,7 +115,7 @@ T* Art<T>::Find(const char* key) const
   while (now != nullptr) {
 
     // 当前节点为叶节点，完全匹配 / 部分匹配
-    if (now->IsLeaf()) {
+    if (now->mNodeType == LEAFNODE) {
       if (((LeafNode<T>*)now)->LeafMatch(key, keyLen))
         return ((LeafNode<T>*)now)->mValue;
       else return nullptr;
@@ -124,13 +129,13 @@ T* Art<T>::Find(const char* key) const
       int prefixLen = now2->CheckPrefixOpt(key, keyLen, depth);
 
       // 判断是否完全匹配
-      if (prefixLen != std::min((int)now2->mPrefixLen, MAX_PREFIX_LEN))
+      if (prefixLen != std::min(now2->mPrefixLen, MAX_PREFIX_LEN))
         return nullptr;
 
       depth = depth + now2->mPrefixLen;
     }
 
-    child = now2->FindChild(key[depth]);
+    child = FindChild(now, key[depth]);
     now = (child) ? (*child) : nullptr;
     depth++; // 走到child边上还有一个字符
     
@@ -159,7 +164,7 @@ void Art<T>::Insert(const char* key, T* value)
 
     
     // 如果当前节点到达节点为叶节点
-    if ((*now)->IsLeaf()) {
+    if ((*now)->mNodeType == LEAFNODE) {
       
       LeafNode<T>* now1 = (LeafNode<T>*)(*now);
       //两种情况：完全匹配 or 部分匹配新建节点
@@ -189,7 +194,7 @@ void Art<T>::Insert(const char* key, T* value)
 
       newNode->mPrefixLen = pos-depth;
       memcpy(newNode->mPrefix, key+depth,
-             std::min(MAX_PREFIX_LEN, (int)newNode->mPrefixLen));
+             std::min(MAX_PREFIX_LEN, newNode->mPrefixLen));
       newNode->AddChild(key[pos], leafNode);
       newNode->AddChild(now1->mKey[pos], now1);
 
@@ -239,20 +244,20 @@ void Art<T>::Insert(const char* key, T* value)
 
         // 需要调整原来节点的prefix，此时CopyOnWrite，复制原节点修改
         // TODO: 不用复制prefix部分
-        InnerNode<T>* copyNode = CopyNode(now2);
+        InnerNode<T>* copyNode = (InnerNode<T>*)CopyNode(*now);
         copyNode->mPrefixLen -= len+1;
       
         if (now2->mPrefixLen <= MAX_PREFIX_LEN) {
           // 所有信息已知，直接修改prefix
           newNode->AddChild(now2->mPrefix[len], copyNode);
           memmove(copyNode->mPrefix, copyNode->mPrefix + len + 1,
-                  std::min(MAX_PREFIX_LEN, (int)copyNode->mPrefixLen) );  
+                  std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );  
         } else {
           // 此时存在未知信息，需要从MinLeaf找到未知前缀部分
           LeafNode<T>* l = MinLeaf(*now);
           newNode->AddChild(l->mKey[depth+len], copyNode);
           memcpy(copyNode->mPrefix, l->mKey + depth + len + 1,
-                 std::min(MAX_PREFIX_LEN, (int)copyNode->mPrefixLen) );
+                 std::min(MAX_PREFIX_LEN, copyNode->mPrefixLen) );
         }
 
         // 最后修改父节点指针以保证线程安全
@@ -263,7 +268,7 @@ void Art<T>::Insert(const char* key, T* value)
       }
     }
 
-    child = now2->FindChild(key[depth]);
+    child = FindChild(*now, key[depth]);
         
     if (child == nullptr) {
       // 没有对应向下节点，新建叶节点，直接插入
@@ -281,9 +286,9 @@ void Art<T>::Insert(const char* key, T* value)
        */
       LeafNode<T>* l = NewLeafNode(key, keyLen, value);
       // 若插入时发现节点已满，需要扩张
-      if (now2->IsFull()) {
+      if (IsFull(*now)) {
         InnerNode<T>* newNode = Grow(now2);
-        newNode->AddChild(key[depth], l);
+        AddChild((Node<T>*)newNode, key[depth], l);
 
         BARRIER();
         *now = newNode;
@@ -292,7 +297,7 @@ void Art<T>::Insert(const char* key, T* value)
         mNodeAllocator->GC(now2);
             
       }
-      else now2->AddChild(key[depth], l);
+      else AddChild(*now, key[depth], l);
       return;
     }
 
@@ -322,8 +327,8 @@ ArtIterator Art<T>::SearchPrefix(const char* prefix)
 template <typename T>
 LeafNode<T>* Art<T>::NewLeafNode(const char* key, int keyLen, T* value)
 {
-  // 注意8字节空间留给虚函数表指针
-  LeafNode<T>* tem = new(malloc(sizeof(LeafNode<T>) + keyLen + 8)) LeafNode<T>;
+  //
+  LeafNode<T>* tem = new(malloc(sizeof(LeafNode<T>) + keyLen)) LeafNode<T>;
   tem->mKeyLen = keyLen;
   tem->mValue = value;
   memcpy(tem->mKey, key, keyLen);
@@ -337,8 +342,7 @@ int Art<T>::CheckPrefixPes(Node<T>* now, const char* key,
 {
   InnerNode<T>* now2 = (InnerNode<T>*)now;
   // 先判断当前节点已存前缀是否匹配
-  int mx = std::min((int)std::min((uint8_t)MAX_PREFIX_LEN,
-                                  now2->mPrefixLen),
+  int mx = std::min(std::min(MAX_PREFIX_LEN, now2->mPrefixLen),
                     keyLen - depth);
   int i;
   for (i = 0; i < mx; i++) {
@@ -364,15 +368,15 @@ template <typename T>
 LeafNode<T>* Art<T>::MinLeaf(Node<T>* now)
 {
   if (now == nullptr) return nullptr;
-  if (now->IsLeaf()) return (LeafNode<T>*)now;
+  if (now->mNodeType == LEAFNODE) return (LeafNode<T>*)now;
 
-  return MinLeaf( ((InnerNode<T>*)now)->MinChild() );
+  return MinLeaf( MinChild(now) );
 }
 
 template <typename T>
 InnerNode<T>* Art<T>::Grow(InnerNode<T>* now)
 {
-  switch (now->NodeType()) {
+  switch (now->mNodeType) {
     
   case (NODE4): {
     Node4<T>* now1;
@@ -435,10 +439,87 @@ InnerNode<T>* Art<T>::Grow(InnerNode<T>* now)
 }
 
 template <typename T>
-InnerNode<T>* Art<T>::CopyNode(InnerNode<T>* now)
+Node<T>** Art<T>::FindChild(Node<T>* now, char partialKey)
 {
-  InnerNode<T>* newNode = (InnerNode<T>*)mNodeAllocator->NewNode(now->NodeType());
-  now->CopyNode(newNode);
+  switch (now->mNodeType) {
+  case NODE4: 
+    return ((Node4<T>*)now)->FindChild(partialKey);
+  case NODE16:
+    return ((Node16<T>*)now)->FindChild(partialKey);
+  case NODE48:
+    return ((Node48<T>*)now)->FindChild(partialKey);
+  case NODE256:
+    return ((Node256<T>*)now)->FindChild(partialKey);
+  default:
+    throw std::runtime_error("Art::FindChild() wrong type");
+  }
+}
+
+template <typename T>
+void Art<T>::AddChild(Node<T>* now, char partialKey, Node<T>* child)
+{
+  switch (now->mNodeType) {
+  case NODE4: 
+    return ((Node4<T>*)now)->AddChild(partialKey, child);
+  case NODE16:
+    return ((Node16<T>*)now)->AddChild(partialKey, child);
+  case NODE48:
+    return ((Node48<T>*)now)->AddChild(partialKey, child);
+  case NODE256:
+    return ((Node256<T>*)now)->AddChild(partialKey, child);
+  default:
+    throw std::runtime_error("Art()::AddChild() wrong type");
+  }
+}
+
+template <typename T>
+Node<T>* Art<T>::MinChild(Node<T>* now)
+{
+  switch (now->mNodeType) {
+  case NODE4: 
+    return ((Node4<T>*)now)->MinChild();
+  case NODE16:
+    return ((Node16<T>*)now)->MinChild();
+  case NODE48:
+    return ((Node48<T>*)now)->MinChild();
+  case NODE256:
+    return ((Node256<T>*)now)->MinChild();
+  default:
+    throw std::runtime_error("Art::MinChild() wrong type");
+  }
+}
+
+template <typename T>
+bool Art<T>::IsFull(Node<T>* now)
+{
+  switch (now->mNodeType) {
+  case NODE4: 
+    return ((Node4<T>*)now)->IsFull();
+  case NODE16:
+    return ((Node16<T>*)now)->IsFull();
+  case NODE48:
+    return ((Node48<T>*)now)->IsFull();
+  case NODE256:
+    return ((Node256<T>*)now)->IsFull();
+  default:
+    throw std::runtime_error("Art::IsFull() wrong type");
+  }  
+}
+
+template <typename T>
+Node<T>* Art<T>::CopyNode(Node<T>* now)
+{
+  Node<T>* newNode = (Node<T>*)mNodeAllocator->NewNode(now->mNodeType);
+
+  switch (now->mNodeType) {
+  case NODE4: ((Node4<T>*)now)->CopyNode(newNode); break;
+  case NODE16: ((Node16<T>*)now)->CopyNode(newNode); break;
+  case NODE48: ((Node48<T>*)now)->CopyNode(newNode); break;
+  case NODE256: ((Node256<T>*)now)->CopyNode(newNode); break;
+  default:
+    throw std::runtime_error("Art::CopyNode() wrong type");
+  }
+
   return newNode;
 }
 

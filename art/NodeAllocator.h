@@ -20,7 +20,7 @@ public:
   NodeAllocator();
   ~NodeAllocator();
 
-  Node<T>* NewNode(const int nodeType);
+  Node<T>* NewNode(uint8_t nodeType);
   void GC(InnerNode<T>* now);
   
 private:
@@ -45,7 +45,7 @@ NodeAllocator<T>::~NodeAllocator()
 }
 
 template <typename T>
-Node<T>* NodeAllocator<T>::NewNode(const int nodeType)
+Node<T>* NodeAllocator<T>::NewNode(uint8_t nodeType)
 {
   switch(nodeType){
   case NODE4: return (Node<T>*)(mPool4.newElement());

@@ -12,5 +12,5 @@ protected:
 
 TEST_F(Node256Test, TestSize)
 {
-  ASSERT_EQ(sizeof(Node256<int>), 2064 + 8);
+  ASSERT_EQ(sizeof(Node256<int>), 2064);
 }

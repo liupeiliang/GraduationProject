@@ -14,12 +14,11 @@ public:
   Node4();
   ~Node4();
 
-  Node<T>** FindChild(const char partialKey) override;
-  void AddChild(char partialKey, Node<T>* child) override;
-  Node<T>* MinChild() override;
-  bool IsFull() override;
-  int NodeType() override;
-  void CopyNode(InnerNode<T>* now) override;
+  Node<T>** FindChild(const char partialKey);
+  void AddChild(char partialKey, Node<T>* child);
+  Node<T>* MinChild();
+  bool IsFull();
+  void CopyNode(Node<T>* now);
   
 public:
   
@@ -31,6 +30,7 @@ public:
 template <typename T>
 Node4<T>::Node4()
 {
+  this->mNodeType = NODE4;
   memset(mKey, 0, sizeof(mKey));
   memset(mChildren, 0, sizeof(mChildren));
 }
@@ -41,7 +41,7 @@ Node4<T>::~Node4()
 }
 
 template <typename T>
-Node<T>** Node4<T>::FindChild(const char partialKey)
+Node<T>** Node4<T>::FindChild(char partialKey)
 {
   for (int i = 0; i < this->mChildrenNum; i++) {
     if(mKey[i] == partialKey)
@@ -77,13 +77,7 @@ bool Node4<T>::IsFull()
 }
 
 template <typename T>
-int Node4<T>::NodeType()
-{
-  return NODE4;
-}
-
-template <typename T>
-void Node4<T>::CopyNode(InnerNode<T>* now)
+void Node4<T>::CopyNode(Node<T>* now)
 {
   memcpy(now, this, sizeof(Node4<T>));
 }

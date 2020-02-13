@@ -10,12 +10,11 @@ public:
   Node48();
   ~Node48();
 
-  Node<T>** FindChild(const char partialKey) override;
-  void AddChild(char partialKey, Node<T>* child) override;
-  Node<T>* MinChild() override;
-  bool IsFull() override;
-  int NodeType() override;
-  void CopyNode(InnerNode<T>* now) override;
+  Node<T>** FindChild(char partialKey);
+  void AddChild(char partialKey, Node<T>* child);
+  Node<T>* MinChild();
+  bool IsFull();
+  void CopyNode(Node<T>* now);
   
 public:
 
@@ -28,6 +27,7 @@ public:
 template <typename T>
 Node48<T>::Node48()
 {
+  this->mNodeType = NODE48;
   memset(mIndex, 48, sizeof(mIndex));
   memset(mChildren, 0, sizeof(mChildren));
 }
@@ -68,13 +68,7 @@ bool Node48<T>::IsFull()
 }
 
 template <typename T>
-int Node48<T>::NodeType()
-{
-  return NODE48;
-}
-
-template <typename T>
-void Node48<T>::CopyNode(InnerNode<T>* now)
+void Node48<T>::CopyNode(Node<T>* now)
 {
   memcpy(now, this, sizeof(Node48<T>));
 }

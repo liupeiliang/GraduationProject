@@ -10,21 +10,13 @@ public:
   InnerNode();
   ~InnerNode();
 
-  bool IsLeaf() const override { return false; }
   int CheckPrefixOpt(const char* key, int keyLen, int depth) const;
-  
-  virtual Node<T>** FindChild(const char partialKey) = 0;
-  virtual void AddChild(char partialKey, Node<T>* child) = 0;
-  virtual Node<T>* MinChild() = 0;
-  virtual bool IsFull() = 0;
-  virtual int NodeType() = 0;
-  virtual void CopyNode(InnerNode<T>* now) = 0;
   
 public:
   
   uint8_t mChildrenNum;
-  uint8_t mPrefixLen; // TODO : 改为uint32_t
-  char mPrefix[MAX_PREFIX_LEN];
+  int mPrefixLen;
+  char mPrefix[MAX_PREFIX_LEN]; // 10
 
 };
 
@@ -45,7 +37,7 @@ InnerNode<T>::~InnerNode()
 template <typename T>
 int InnerNode<T>::CheckPrefixOpt(const char* key, int keyLen, int depth) const
 {
-  int mx = std::min((int)std::min((uint8_t)MAX_PREFIX_LEN, mPrefixLen),
+  int mx = std::min(std::min(MAX_PREFIX_LEN, mPrefixLen),
                     keyLen - depth);
   for (int i = 0; i < mx; i++) {
     if (key[depth+i] != mPrefix[i])

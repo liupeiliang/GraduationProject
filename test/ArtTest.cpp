@@ -10,70 +10,6 @@ protected:
   void TearDown() override {}
 };
 
-const int N = 1000000;
-char value[N+5];
-char* key[N+5];
-unordered_map<char*, char*> ht;
-map<char*, char*> rb;
-
-TEST_F(ArtTest, SpeedTest)
-{
-  for (int i = 0; i < N; i++) {
-    key[i] = (char*)malloc(5);
-    for (int j = 0; j < 4; j++) {
-      key[i][j] = rand()%26 + 'a';
-    }
-    key[i][4] = '\0';
-    value[i] = 'a';
-  }
-
-  clock_t s, t;
-  
-  s = clock();
-  Art<char> art;
-  for (int i = 0; i < N; i++) {
-    art.Insert(key[i], &value[i]);
-  }
-  t = clock();
-  printf("art inesrt time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
-
-  s = clock();
-  for (int i = 0; i < N; i++) {
-    char* ans = art.Find(key[i]);
-  }
-  t = clock();
-  printf("art find time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
-  
-  s = clock();
-  for (int i = 0; i < N; i++) {
-    ht.insert(make_pair(key[i], &value[i]));
-  }  
-  t = clock();
-  printf("ht insert time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
-
-  s = clock();
-  for (int i = 0; i < N; i++) {
-    auto ans = ht.find(key[i]);
-  }  
-  t = clock();
-  printf("ht find time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);  
-
-  s = clock();
-  for (int i = 0; i < N; i++) {
-    rb.insert(make_pair(key[i], &value[i]));
-  }  
-  t = clock();
-  printf("rb insert time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
-
-  s = clock();
-  for (int i = 0; i < N; i++) {
-    auto ans = rb.find(key[i]);
-  }  
-  t = clock();
-  printf("rb find time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
-  
-}
-
 TEST_F(ArtTest, SimpleInsertAndFindTest)
 {
   Art<int> art;
@@ -207,4 +143,68 @@ TEST_F(ArtTest, PrefixPessimisticTest)
   ans = art.Find(k3);
   ASSERT_TRUE(ans != nullptr);
   ASSERT_EQ(*ans, v3);  
+}
+
+const int N = 1000000;
+char value[N+5];
+char* key[N+5];
+unordered_map<char*, char*> ht;
+map<char*, char*> rb;
+
+TEST_F(ArtTest, SpeedTest)
+{
+  for (int i = 0; i < N; i++) {
+    key[i] = (char*)malloc(5);
+    for (int j = 0; j < 4; j++) {
+      key[i][j] = rand()%26 + 'a';
+    }
+    key[i][4] = '\0';
+    value[i] = 'a';
+  }
+
+  clock_t s, t;
+  
+  s = clock();
+  Art<char> art;
+  for (int i = 0; i < N; i++) {
+    art.Insert(key[i], &value[i]);
+  }
+  t = clock();
+  printf("art inesrt time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
+
+  s = clock();
+  for (int i = 0; i < N; i++) {
+    char* ans = art.Find(key[i]);
+  }
+  t = clock();
+  printf("art find time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
+  
+  s = clock();
+  for (int i = 0; i < N; i++) {
+    ht.insert(make_pair(key[i], &value[i]));
+  }  
+  t = clock();
+  printf("ht insert time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
+
+  s = clock();
+  for (int i = 0; i < N; i++) {
+    auto ans = ht.find(key[i]);
+  }  
+  t = clock();
+  printf("ht find time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);  
+
+  s = clock();
+  for (int i = 0; i < N; i++) {
+    rb.insert(make_pair(key[i], &value[i]));
+  }  
+  t = clock();
+  printf("rb insert time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
+
+  s = clock();
+  for (int i = 0; i < N; i++) {
+    auto ans = rb.find(key[i]);
+  }  
+  t = clock();
+  printf("rb find time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
+  
 }

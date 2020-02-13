@@ -10,12 +10,11 @@ public:
   Node256();
   ~Node256();
 
-  Node<T>** FindChild(const char partialKey) override;
-  void AddChild(char partialKey, Node<T>* child) override;
-  Node<T>* MinChild() override;
-  bool IsFull() override;
-  int NodeType() override;
-  void CopyNode(InnerNode<T>* now) override;
+  Node<T>** FindChild(char partialKey);
+  void AddChild(char partialKey, Node<T>* child);
+  Node<T>* MinChild();
+  bool IsFull();
+  void CopyNode(Node<T>* now);
   
 public:
 
@@ -27,6 +26,7 @@ public:
 template <typename T>
 Node256<T>::Node256()
 {
+  this->mNodeType = NODE256;
   memset(mChildren, 0, sizeof(mChildren));
 }
 
@@ -65,13 +65,7 @@ bool Node256<T>::IsFull()
 }
 
 template <typename T>
-int Node256<T>::NodeType()
-{
-  return NODE256;
-}
-
-template <typename T>
-void Node256<T>::CopyNode(InnerNode<T>* now)
+void Node256<T>::CopyNode(Node<T>* now)
 {
   memcpy(now, this, sizeof(Node256<T>));
 }

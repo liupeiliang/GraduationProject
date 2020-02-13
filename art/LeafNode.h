@@ -3,7 +3,7 @@
 
 #include "Node.h"
 
-#pragma pack(4)
+#pragma pack(1)
 
 template <typename T>
 class LeafNode : public Node<T>{
@@ -11,7 +11,6 @@ public:
   LeafNode();
   ~LeafNode();
 
-  bool IsLeaf() const override { return true; }
   bool LeafMatch(const char* key, int keyLen) const ;
   int MatchPoint(const char* key, int keyLen, int depth) const;
   
@@ -26,6 +25,7 @@ public:
 template <typename T>
 LeafNode<T>::LeafNode()
 {
+  this->mNodeType = LEAFNODE;
 }
 
 template <typename T>
