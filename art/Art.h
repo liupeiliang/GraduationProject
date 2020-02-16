@@ -285,19 +285,19 @@ void Art<T>::Insert(const char* key, T* value)
        * from rafaelkallis
        */
       LeafNode<T>* l = NewLeafNode(key, keyLen, value);
+      Node<T>* newNode;
       // 若插入时发现节点已满，需要扩张
       if (IsFull(*now)) {
-        InnerNode<T>* newNode = Grow(now2);
-        AddChild((Node<T>*)newNode, key[depth], l);
-
-        BARRIER();
-        *now = newNode;
-
-        BARRIER();
-        mNodeAllocator->GC(now2);
-            
+        newNode = (Node<T>*)Grow(now2);
       }
-      else AddChild(*now, key[depth], l);
+      else newNode = CopyNode(*now);
+      AddChild(newNode, key[depth], l);
+      
+      BARRIER();
+      *now = newNode;
+      
+      BARRIER();
+      mNodeAllocator->GC(now2);
       return;
     }
 

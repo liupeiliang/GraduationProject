@@ -53,15 +53,18 @@ Node<T>** Node4<T>::FindChild(char partialKey)
 template <typename T>
 void Node4<T>::AddChild(char partialKey, Node<T>* child)
 {
-  // 注意多线程下可能存在的问题
-  mKey[this->mChildrenNum] = partialKey;
-  mChildren[this->mChildrenNum] = child;
-
-  // 保证线程安全
-  BARRIER();
-
+  int i;
+  for (i = 0; i < this->mChildrenNum; i++) {
+    if (mKey[i] > partialKey) {
+        memmove(mKey+i+1, mKey+i, this->mChildrenNum-i);
+        memmove(mChildren+i+1, mChildren+i,
+                (this->mChildrenNum-i)*sizeof(Node<T>*));
+        break;
+    }
+  }
+  mKey[i] = partialKey;
+  mChildren[i] = child;
   ++this->mChildrenNum;
-  
 }
 
 template <typename T>

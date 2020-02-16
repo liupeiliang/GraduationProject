@@ -40,24 +40,25 @@ Node16<T>::~Node16()
 template <typename T>
 Node<T>** Node16<T>::FindChild(const char partialKey)
 {
-  for (int i = 0; i < this->mChildrenNum; i++) {
-    if(mKey[i] == partialKey)
-      return &mChildren[i];
-  }
+  int i = std::lower_bound(mKey, mKey+this->mChildrenNum,
+                           partialKey) - mKey;
+  if(mKey[i] == partialKey) return &mChildren[i];
   return nullptr;
 }
 
 template <typename T>
 void Node16<T>::AddChild(char partialKey, Node<T>* child)
 {
-  // 同NODE4处理方法
-  mKey[this->mChildrenNum] = partialKey;
-  mChildren[this->mChildrenNum] = child;
-
-  BARRIER();
-
+  int i = std::upper_bound(mKey, mKey+this->mChildrenNum,
+                           partialKey) - mKey;
+  if (i < this->mChildrenNum) {
+    memmove(mKey+i+1, mKey+i, this->mChildrenNum-i);
+    memmove(mChildren+i+1, mChildren+i,
+           (this->mChildrenNum-i)*sizeof(Node<T>*));
+  }
+  mKey[i] = partialKey;
+  mChildren[i] = child;
   ++this->mChildrenNum;
-  
 }
 
 template <typename T>
