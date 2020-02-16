@@ -15,6 +15,9 @@ public:
   Node<T>* MinChild();
   bool IsFull();
   void CopyNode(Node<T>* now);
+
+  char MinPartialKey();
+  char NextPartialKey(char partialKey);
   
 public:
 
@@ -77,6 +80,18 @@ template <typename T>
 void Node16<T>::CopyNode(Node<T>* now)
 {
   memcpy(now, this, sizeof(Node16<T>));
+}
+
+template <typename T>
+char Node16<T>::MinPartialKey()
+{
+  return mKey[0];
+}
+
+template <typename T>
+char Node16<T>::NextPartialKey(char partialKey)
+{
+  return *upper_bound(mKey, mKey+this->mChildrenNum, partialKey);
 }
 
 #endif //_Node16_H

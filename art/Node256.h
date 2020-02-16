@@ -15,6 +15,9 @@ public:
   Node<T>* MinChild();
   bool IsFull();
   void CopyNode(Node<T>* now);
+
+  char MinPartialKey();
+  char NextPartialKey(char partialKey);
   
 public:
 
@@ -69,5 +72,24 @@ void Node256<T>::CopyNode(Node<T>* now)
 {
   memcpy(now, this, sizeof(Node256<T>));
 }
+
+template <typename T>
+char Node256<T>::MinPartialKey()
+{
+  for (int i = 0; i < 256; i++) {
+    if (mChildren[i])
+      return (char)(i-128);
+  }
+}
+
+template <typename T>
+char Node256<T>::NextPartialKey(char partialKey)
+{
+  for (int i = partialKey+128+1; i < 256; i++) {
+    if (mChildren[i])
+      return (char)(i-128);
+  }
+}
+
 
 #endif //_Node256_H

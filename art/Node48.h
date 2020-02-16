@@ -15,6 +15,9 @@ public:
   Node<T>* MinChild();
   bool IsFull();
   void CopyNode(Node<T>* now);
+
+  char MinPartialKey();
+  char NextPartialKey(char partialKey);
   
 public:
 
@@ -71,6 +74,24 @@ template <typename T>
 void Node48<T>::CopyNode(Node<T>* now)
 {
   memcpy(now, this, sizeof(Node48<T>));
+}
+
+template <typename T>
+char Node48<T>::MinPartialKey()
+{
+  for (int i = 0; i < 256; i++) {
+    if (mIndex[i] < 48)
+      return (char)(i-128);
+  }
+}
+
+template <typename T>
+char Node48<T>::NextPartialKey(char partialKey)
+{
+  for (int i = partialKey+128+1; i < 256; i++) {
+    if (mIndex[i] < 48)
+      return (char)(i-128);
+  }
 }
 
 #endif //_Node48_H

@@ -30,6 +30,9 @@ private:
   Node<T>* MinChild(Node<T>* now);
   bool IsFull(Node<T>* now);
   Node<T>* CopyNode(Node<T>* now);
+
+  char MinPartialKey(Node<T>* now);
+  char NextPartialKey(Node<T>* now, char partialKey);
   
 private:
   
@@ -521,6 +524,33 @@ Node<T>* Art<T>::CopyNode(Node<T>* now)
   }
 
   return newNode;
+}
+
+template <typename T>
+char Art<T>::MinPartialKey(Node<T>* now)
+{
+  switch (now->mNodeType) {
+  case NODE4: return ((Node4<T>*)now)->MinPartialKey();
+  case NODE16: return ((Node16<T>*)now)->MinPartialKey();
+  case NODE48: return ((Node48<T>*)now)->MinPartialKey();
+  case NODE256: return ((Node256<T>*)now)->MinPartialKey();
+  default:
+    throw std::runtime_error("Art::MinPartialKey NodeType error");
+  }
+}
+
+template <typename T>
+char Art<T>::NextPartialKey(Node<T>* now, char partialKey)
+{
+  
+  switch (now->mNodeType) {
+  case NODE4: return ((Node4<T>*)now)->NextPartialKey(partialKey);
+  case NODE16: return ((Node16<T>*)now)->NextPartialKey(partialKey);
+  case NODE48: return ((Node48<T>*)now)->NextPartialKey(partialKey);
+  case NODE256: return ((Node256<T>*)now)->NextPartialKey(partialKey);
+  default:
+    throw std::runtime_error("Art::NextPartialKey NodeType error");
+  }
 }
 
 #endif //_Art_H

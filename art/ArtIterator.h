@@ -5,7 +5,7 @@ class ArtIterator{
 public:
   ArtIterator();
   ~ArtIterator();
-
+  
 private:
 };
 
