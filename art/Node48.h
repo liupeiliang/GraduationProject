@@ -17,7 +17,7 @@ public:
   void CopyNode(Node<T>* now);
 
   char MinPartialKey();
-  char NextPartialKey(char partialKey);
+  short NextPartialKey(char partialKey);
   
 public:
 
@@ -86,12 +86,13 @@ char Node48<T>::MinPartialKey()
 }
 
 template <typename T>
-char Node48<T>::NextPartialKey(char partialKey)
+short Node48<T>::NextPartialKey(char partialKey)
 {
   for (int i = partialKey+128+1; i < 256; i++) {
     if (mIndex[i] < 48)
-      return (char)(i-128);
+      return i-128;
   }
+  return NO_NEXT;
 }
 
 #endif //_Node48_H

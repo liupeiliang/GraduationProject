@@ -17,7 +17,7 @@ public:
   void CopyNode(Node<T>* now);
 
   char MinPartialKey();
-  char NextPartialKey(char partialKey);
+  short NextPartialKey(char partialKey);
   
 public:
 
@@ -83,12 +83,13 @@ char Node256<T>::MinPartialKey()
 }
 
 template <typename T>
-char Node256<T>::NextPartialKey(char partialKey)
+short Node256<T>::NextPartialKey(char partialKey)
 {
   for (int i = partialKey+128+1; i < 256; i++) {
     if (mChildren[i])
-      return (char)(i-128);
+      return i-128;
   }
+  return NO_NEXT;
 }
 
 

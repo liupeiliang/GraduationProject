@@ -1,5 +1,7 @@
 #include <bits/stdc++.h>
 #include "gtest/gtest.h"
+
+#include "test/ArtIteratorTest.cpp"
 #include "test/ArtTest.cpp"
 #include "test/Node4Test.cpp"
 #include "test/NodeAllocatorTest.cpp"

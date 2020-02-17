@@ -17,7 +17,7 @@ public:
   void CopyNode(Node<T>* now);
 
   char MinPartialKey();
-  char NextPartialKey(char partialKey);
+  short NextPartialKey(char partialKey);
   
 public:
 
@@ -89,9 +89,12 @@ char Node16<T>::MinPartialKey()
 }
 
 template <typename T>
-char Node16<T>::NextPartialKey(char partialKey)
+short Node16<T>::NextPartialKey(char partialKey)
 {
-  return *upper_bound(mKey, mKey+this->mChildrenNum, partialKey);
+  int i = upper_bound(mKey, mKey+this->mChildrenNum, partialKey)
+    - mKey;
+  if (i == this->mChildrenNum) return NO_NEXT;
+  else return mKey[i];
 }
 
 #endif //_Node16_H

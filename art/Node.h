@@ -12,6 +12,7 @@
 #define LEAFNODE (uint8_t)5
 
 #define MAX_PREFIX_LEN (int)10
+#define NO_NEXT (short)256
 #define BARRIER() __asm__ __volatile__("": : :"memory")
 
 #pragma pack(1)

@@ -14,7 +14,7 @@ public:
 
   T* Find(const char* key);
   void Insert(const char* key, T* value);
-  ArtIterator SearchPrefix(const char* prefix);
+  ArtIterator<T>* SearchPrefix(const char* prefix);
 
   
 private:
@@ -31,9 +31,6 @@ private:
   bool IsFull(Node<T>* now);
   Node<T>* CopyNode(Node<T>* now);
 
-  char MinPartialKey(Node<T>* now);
-  char NextPartialKey(Node<T>* now, char partialKey);
-  
 private:
   
   Node<T>* mRoot;
@@ -321,10 +318,57 @@ void Art<T>::Insert(const char* key, T* value)
 }
 
 template <typename T>
-ArtIterator Art<T>::SearchPrefix(const char* prefix)
+ArtIterator<T>* Art<T>::SearchPrefix(const char* prefix)
 {
-  ArtIterator tem;
-  return tem;
+  ArtIterator<T>* it = new ArtIterator<T>;
+  
+  Node<T>* now = mRoot;
+  Node<T>** child;
+
+  int depth = 0, prefixLen = std::strlen(prefix);
+  
+  while (now != nullptr) {
+
+    if (depth == prefixLen) {
+      it->Init(now);
+      return it;
+    }
+
+    // 当前节点为叶节点
+    if (now->mNodeType == LEAFNODE) {
+      int pos = ((LeafNode<T>*)now)->
+        MatchPoint(prefix, prefixLen, depth);
+      if (pos == prefixLen) {
+        it->Init(now);
+        return it;
+      }
+      else return nullptr;
+    }
+
+    InnerNode<T>* now2 = (InnerNode<T>*)now;
+    // 存在压缩前缀，进行匹配
+    if (now2->mPrefixLen > 0) {
+
+      int len = CheckPrefixPes(now, prefix, prefixLen, depth);
+      // 前缀匹配成功
+      if (depth+len == prefixLen) {
+        it->Init(now);
+        return it;
+      }
+      // 判断是否继续下降
+      if (len != now2->mPrefixLen)
+        return nullptr;
+
+      depth = depth + now2->mPrefixLen;
+    }
+
+    child = FindChild(now, prefix[depth]);
+    now = (child) ? (*child) : nullptr;
+    depth++; // 走到child边上还有一个字符
+    
+  }
+  
+  return nullptr;
 }
 
 template <typename T>
@@ -524,33 +568,6 @@ Node<T>* Art<T>::CopyNode(Node<T>* now)
   }
 
   return newNode;
-}
-
-template <typename T>
-char Art<T>::MinPartialKey(Node<T>* now)
-{
-  switch (now->mNodeType) {
-  case NODE4: return ((Node4<T>*)now)->MinPartialKey();
-  case NODE16: return ((Node16<T>*)now)->MinPartialKey();
-  case NODE48: return ((Node48<T>*)now)->MinPartialKey();
-  case NODE256: return ((Node256<T>*)now)->MinPartialKey();
-  default:
-    throw std::runtime_error("Art::MinPartialKey NodeType error");
-  }
-}
-
-template <typename T>
-char Art<T>::NextPartialKey(Node<T>* now, char partialKey)
-{
-  
-  switch (now->mNodeType) {
-  case NODE4: return ((Node4<T>*)now)->NextPartialKey(partialKey);
-  case NODE16: return ((Node16<T>*)now)->NextPartialKey(partialKey);
-  case NODE48: return ((Node48<T>*)now)->NextPartialKey(partialKey);
-  case NODE256: return ((Node256<T>*)now)->NextPartialKey(partialKey);
-  default:
-    throw std::runtime_error("Art::NextPartialKey NodeType error");
-  }
 }
 
 #endif //_Art_H

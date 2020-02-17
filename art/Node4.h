@@ -20,7 +20,7 @@ public:
   bool IsFull();
   void CopyNode(Node<T>* now);
   char MinPartialKey();
-  char NextPartialKey(char partialKey);
+  short NextPartialKey(char partialKey);
   
 public:
   
@@ -94,13 +94,14 @@ char Node4<T>::MinPartialKey()
 }
 
 template <typename T>
-char Node4<T>::NextPartialKey(char partialKey)
+short Node4<T>::NextPartialKey(char partialKey)
 {
   for (int i = 0; i < this->mChildrenNum; i++) {
     if (mKey[i] > partialKey) {
       return mKey[i];
     }
   }
+  return NO_NEXT;
 }
 
 #endif //_Node4_H

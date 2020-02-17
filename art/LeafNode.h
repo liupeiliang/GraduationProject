@@ -52,8 +52,8 @@ int LeafNode<T>::MatchPoint(const char* key, int keyLen, int depth) const
   }
   if (keyLen == mKeyLen) return -1;
   // 此时一个串是另一个的前缀，理论上该情况不可能出现
-  // else return Left + 1;
-  throw std::runtime_error("LeafNode::MatchPoint(): prefix error");
+  else return mx;
+  //throw std::runtime_error("LeafNode::MatchPoint(): prefix error");
 }
 
 #endif //_LeafNode_H
