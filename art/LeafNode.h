@@ -26,6 +26,7 @@ template <typename T>
 LeafNode<T>::LeafNode()
 {
   this->mNodeType = LEAFNODE;
+  mKeyLen = 0;
 }
 
 template <typename T>

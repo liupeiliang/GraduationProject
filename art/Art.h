@@ -45,6 +45,7 @@ Art<T>::Art()
   mNodeAllocator = new NodeAllocator<T>;
   mRootGenerator = (Node4<T>*)mNodeAllocator->NewNode(NODE4);
   mRoot = mRootGenerator->mChildren[0];
+  // 注意这里需要保证mRoot的原子性，故使用了mRootGenerator
 }
 
 template <typename T>
@@ -105,7 +106,7 @@ Art<T>::~Art()
 template <typename T>
 T* Art<T>::Find(const char* key)
 {
-  // TODO: 等待检查2nd
+  shared_ptr<int> sp = mNodeAllocator->AcquireVersion();
   
   Node<T>* now = mRoot;
   Node<T>** child;
@@ -145,9 +146,9 @@ T* Art<T>::Find(const char* key)
 
 template <typename T>
 void Art<T>::Insert(const char* key, T* value)
-{
-  // TODO: 1. 等待全面检查2nd
-  //       2. 注意n和child为Node<T>**
+{  
+  // 写线程触发垃圾回收
+  mNodeAllocator->GarbageCollection();
   
   int keyLen = strlen(key) + 1, depth = 0;
 
@@ -159,6 +160,7 @@ void Art<T>::Insert(const char* key, T* value)
 
   Node<T>** now = &mRoot;
   Node<T>** child;
+  Node<T>* old;
 
   while (true) {
 
@@ -182,9 +184,17 @@ void Art<T>::Insert(const char* key, T* value)
          *     /      \      ==========>     /      \
          * *(aa)->v1  ()->v2             *(aa)->v3  ()->v2
          *
-         * from rafaelkallis
+         * graph from rafaelkallis
          */
-        now1->mValue = value;
+        LeafNode<T>* l = NewLeafNode(now1->mKey,
+                                     now1->mKeyLen, value);
+        old = *now;
+        mNodeAllocator->mVersion++;
+        BARRIER();
+        *now = l;
+        BARRIER();
+        int version = (int)(mNodeAllocator->mVersion);
+        mNodeAllocator->PushInGCqueue(old, version);
         return;
       }
 
@@ -261,9 +271,13 @@ void Art<T>::Insert(const char* key, T* value)
         }
 
         // 最后修改父节点指针以保证线程安全
+        old = *now;
+        mNodeAllocator->mVersion++;
         BARRIER();
         *now = newNode;
-
+        BARRIER();
+        int version = (int)(mNodeAllocator->mVersion);
+        mNodeAllocator->PushInGCqueue(old, version);
         return;
       }
     }
@@ -292,12 +306,14 @@ void Art<T>::Insert(const char* key, T* value)
       }
       else newNode = CopyNode(*now);
       AddChild(newNode, key[depth], l);
-      
+
+      old = *now;
+      mNodeAllocator->mVersion++;
       BARRIER();
       *now = newNode;
-      
       BARRIER();
-      mNodeAllocator->GC(now2);
+      int version = (int)(mNodeAllocator->mVersion);
+      mNodeAllocator->PushInGCqueue(old, version);      
       return;
     }
 
@@ -314,14 +330,14 @@ void Art<T>::Insert(const char* key, T* value)
     now = child;
     
   } // while(){}
-  
 }
 
 template <typename T>
 ArtIterator<T>* Art<T>::SearchPrefix(const char* prefix)
 {
+  shared_ptr<int> sp = mNodeAllocator->AcquireVersion();
+
   ArtIterator<T>* it = new ArtIterator<T>;
-  
   Node<T>* now = mRoot;
   Node<T>** child;
 

@@ -21,15 +21,22 @@ public:
   ~NodeAllocator();
 
   Node<T>* NewNode(uint8_t nodeType);
-  void GC(InnerNode<T>* now);
+  void DeleteNode(Node<T>* now);
   
-private:
+  void PushInGCqueue(Node<T>* now, int version);
+  void GarbageCollection();
+  shared_ptr<int> AcquireVersion();
+  
+public:
   MemoryPool< Node4<T> > mPool4;
   MemoryPool< Node16<T> > mPool16;
   MemoryPool< Node48<T> > mPool48;
   MemoryPool< Node256<T> > mPool256;
 
-  queue<InnerNode<T>*> mGCqueue;
+  atomic<int> mVersion;
+  queue< Node<T>* > mGCqueue;
+  queue< int > mVersionQueue;
+  queue< shared_ptr<int> > mReaderQueue;
   
 };
 
@@ -37,6 +44,7 @@ private:
 template <typename T>
 NodeAllocator<T>::NodeAllocator()
 {
+  mVersion = 1;
 }
 
 template <typename T>
@@ -55,14 +63,73 @@ Node<T>* NodeAllocator<T>::NewNode(uint8_t nodeType)
   default:
     throw std::runtime_error("NodeAllocator::NewNode wrongType");
   }
-  
   return nullptr;
 }
 
 template <typename T>
-void NodeAllocator<T>::GC(InnerNode<T>* now)
+void NodeAllocator<T>::DeleteNode(Node<T>* now)
+{
+  switch (now->mNodeType) {
+  case NODE4: mPool4.deleteElement((Node4<T>*)now); break;
+  case NODE16: mPool16.deleteElement((Node16<T>*)now); break;
+  case NODE48: mPool48.deleteElement((Node48<T>*)now); break;
+  case NODE256:
+    mPool256.deleteElement((Node256<T>*)now); break;
+  case LEAFNODE: free((LeafNode<T>*)now); break;
+  default:
+    throw std::runtime_error("NodeAllocator::DeleteNode()");
+  } 
+}
+
+template <typename T>
+void NodeAllocator<T>::PushInGCqueue(Node<T>* now,
+                                     int version)
 {
   mGCqueue.push(now);
+  mVersionQueue.push(version);
+}
+
+template <typename T>
+void NodeAllocator<T>::GarbageCollection()
+{
+  int s = mGCqueue.size();
+
+  //待回收节点达到一定规模再进行回收
+  if (s < 50) return; 
+  
+  int mxDeleteVersion = mVersion-1;
+  
+  while (!mReaderQueue.empty()) {
+    shared_ptr<int> sp = mReaderQueue.front();
+    if (*(sp.get()) == mVersion) break;
+    if (sp.use_count() == 2) { //注意这里sp也持有，所以为2
+      mxDeleteVersion = *(sp.get());
+      mReaderQueue.pop();
+    }
+    else {
+      mxDeleteVersion = (*sp.get())-1;
+      break;
+    }
+  }
+  
+  while (!mGCqueue.empty()) {
+    int v = mVersionQueue.front();
+    if (v <= mxDeleteVersion) {
+      Node<T>* now = mGCqueue.front();
+      mGCqueue.pop();
+      mVersionQueue.pop();
+      DeleteNode(now);
+    }
+    else break;
+  }
+  
+}
+
+template <typename T>
+shared_ptr<int> NodeAllocator<T>::AcquireVersion() {
+  shared_ptr<int> sp = make_shared<int>(mVersion);
+  mReaderQueue.push(sp);
+  return sp;
 }
 
 #endif //_NodeAllocator_H

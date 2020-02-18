@@ -145,7 +145,7 @@ TEST_F(ArtTest, PrefixPessimisticTest)
   ASSERT_EQ(*ans, v3);  
 }
 
-const int N = 1000000;
+const int N = 1000;
 char value[N+5];
 char* key[N+5];
 unordered_map<char*, char*> ht;
