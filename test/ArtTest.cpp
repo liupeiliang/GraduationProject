@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <bits/stdc++.h>
+#include <thread>
 #include "../art/Art.h"
 
 using namespace std;
@@ -9,6 +10,75 @@ protected:
   void SetUp() override { srand(time(0)); }
   void TearDown() override {}
 };
+
+const int MX = 1000000;
+char* key[MX];
+int value[MX];
+string skey[MX];
+map<string, int*> rbt;
+unordered_map<string, int*> ht;
+
+TEST_F(ArtTest, SpeedTest1)
+{
+  FILE* fp = fopen("/root/otherART/words.txt","r");
+  for (int i = 0; i < MX; i++) {
+    char s[22];
+    fscanf(fp, "%s", s);
+    int len = strlen(s);
+    key[i] = (char*)calloc(len+1, 1);
+    memcpy(key[i], s, len);
+    value[i] = i;
+    skey[i] = key[i];
+  }
+  fclose(fp);
+  
+  Art<int> art;
+  clock_t S, T;
+
+  S = clock();
+  for (int i = 0; i < MX; i++) {
+    art.Insert(key[i], &value[i]);
+  }
+  T = clock();
+  printf("Multi-ART insert time=%f\n",(float)(T-S)*1000/CLOCKS_PER_SEC);
+
+  S = clock();
+  for (int i = 0; i < MX; i++) {
+    art.Find(key[i]);
+  }
+  T = clock();
+  printf("Multi-ART find time=%f\n",(float)(T-S)*1000/CLOCKS_PER_SEC);
+
+  S = clock();
+  for (int i = 0; i < MX; i++) {
+    rbt.insert(make_pair(skey[i], &value[i]));
+  }
+  T = clock();
+  printf("rbt insert time=%f\n",(float)(T-S)*1000/CLOCKS_PER_SEC);
+
+  S = clock();
+  for (int i = 0; i < MX; i++) {
+    rbt.find(skey[i]);
+  }
+  T = clock();
+  printf("rbt find time=%f\n",(float)(T-S)*1000/CLOCKS_PER_SEC);
+
+  S = clock();
+  for (int i = 0; i < MX; i++) {
+    ht.insert(make_pair(skey[i], &value[i]));
+  }
+  T = clock();
+  printf("ht insert time=%f\n",(float)(T-S)*1000/CLOCKS_PER_SEC);
+
+  S = clock();
+  for (int i = 0; i < MX; i++) {
+    ht.find(skey[i]);
+  }
+  T = clock();
+  printf("ht find time=%f\n",(float)(T-S)*1000/CLOCKS_PER_SEC);
+  
+  
+}
 
 TEST_F(ArtTest, SimpleInsertAndFindTest)
 {
@@ -144,7 +214,7 @@ TEST_F(ArtTest, PrefixPessimisticTest)
   ASSERT_TRUE(ans != nullptr);
   ASSERT_EQ(*ans, v3);  
 }
-
+/*
 const int N = 1000;
 char value[N+5];
 char* key[N+5];
@@ -208,3 +278,5 @@ TEST_F(ArtTest, SpeedTest)
   printf("rb find time=%f\n",(float)(t-s)*1000/CLOCKS_PER_SEC);
   
 }
+
+*/

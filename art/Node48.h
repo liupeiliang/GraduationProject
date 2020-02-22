@@ -52,16 +52,16 @@ template <typename T>
 void Node48<T>::AddChild(char partialKey, Node<T>* child)
 {
   mChildren[this->mChildrenNum] = child;
-
-  BARRIER();
-
   mIndex[partialKey + 128] = this->mChildrenNum++;
 }
 
 template <typename T>
 Node<T>* Node48<T>::MinChild()
 {
-  return mChildren[0];
+  for (int i = 0; i < 256; i++) {
+    if (mIndex[i] < 48)
+      return mChildren[mIndex[i]];
+  }
 }
 
 template <typename T>

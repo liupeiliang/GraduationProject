@@ -25,20 +25,20 @@ TEST_F(ArtIteratorTest, SearchPrefixTest)
   ASSERT_TRUE(it != nullptr);
   
   int* tem = it->GetValue();
-  printf("%s\n", it->GetKey());
+//  printf("%s\n", it->GetKey());
   ASSERT_EQ(*tem, 2);
   
   bool nx = it->HasNext();
   ASSERT_EQ(nx, true);
   it->GoNext();
-  printf("%s\n", it->GetKey());
+//  printf("%s\n", it->GetKey());
   tem = it->GetValue();
   ASSERT_EQ(*tem, 3);
 
   nx = it->HasNext();
   ASSERT_EQ(nx, true);
   it->GoNext();
-  printf("%s\n", it->GetKey());
+//  printf("%s\n", it->GetKey());
   tem = it->GetValue();
   ASSERT_EQ(*tem, 1);
 

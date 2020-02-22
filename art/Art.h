@@ -160,8 +160,8 @@ void Art<T>::Insert(const char* key, T* value)
 
   Node<T>** now = &mRoot;
   Node<T>** child;
-  Node<T>* old;
-
+  Node<T>* old = nullptr;
+  
   while (true) {
 
     
@@ -169,7 +169,7 @@ void Art<T>::Insert(const char* key, T* value)
     if ((*now)->mNodeType == LEAFNODE) {
       
       LeafNode<T>* now1 = (LeafNode<T>*)(*now);
-      //两种情况：完全匹配 or 部分匹配新建节点
+      // 两种情况：完全匹配 or 部分匹配新建节点
       int pos = now1->MatchPoint(key, keyLen, depth);
       
       if (pos == -1) {
@@ -188,13 +188,14 @@ void Art<T>::Insert(const char* key, T* value)
          */
         LeafNode<T>* l = NewLeafNode(now1->mKey,
                                      now1->mKeyLen, value);
-        old = *now;
-        mNodeAllocator->mVersion++;
+        
         BARRIER();
+        old = *now;
         *now = l;
         BARRIER();
         int version = (int)(mNodeAllocator->mVersion);
         mNodeAllocator->PushInGCqueue(old, version);
+        mNodeAllocator->AddVersion();
         return;
       }
 
@@ -271,13 +272,13 @@ void Art<T>::Insert(const char* key, T* value)
         }
 
         // 最后修改父节点指针以保证线程安全
-        old = *now;
-        mNodeAllocator->mVersion++;
         BARRIER();
+        old = *now;
         *now = newNode;
         BARRIER();
         int version = (int)(mNodeAllocator->mVersion);
         mNodeAllocator->PushInGCqueue(old, version);
+        mNodeAllocator->AddVersion();
         return;
       }
     }
@@ -306,14 +307,14 @@ void Art<T>::Insert(const char* key, T* value)
       }
       else newNode = CopyNode(*now);
       AddChild(newNode, key[depth], l);
-
-      old = *now;
-      mNodeAllocator->mVersion++;
+      
       BARRIER();
+      old = *now;
       *now = newNode;
       BARRIER();
       int version = (int)(mNodeAllocator->mVersion);
-      mNodeAllocator->PushInGCqueue(old, version);      
+      mNodeAllocator->PushInGCqueue(old, version);
+      mNodeAllocator->AddVersion();
       return;
     }
 

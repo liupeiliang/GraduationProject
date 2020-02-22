@@ -45,6 +45,7 @@ Node<T>** Node16<T>::FindChild(const char partialKey)
 {
   int i = std::lower_bound(mKey, mKey+this->mChildrenNum,
                            partialKey) - mKey;
+  if (i >= this->mChildrenNum) return nullptr;
   if(mKey[i] == partialKey) return &mChildren[i];
   return nullptr;
 }

@@ -26,6 +26,7 @@ public:
   void PushInGCqueue(Node<T>* now, int version);
   void GarbageCollection();
   shared_ptr<int> AcquireVersion();
+  void AddVersion();
   
 public:
   MemoryPool< Node4<T> > mPool4;
@@ -34,6 +35,7 @@ public:
   MemoryPool< Node256<T> > mPool256;
 
   atomic<int> mVersion;
+  shared_ptr<int> mVersionPointer;
   queue< Node<T>* > mGCqueue;
   queue< int > mVersionQueue;
   queue< shared_ptr<int> > mReaderQueue;
@@ -45,6 +47,7 @@ template <typename T>
 NodeAllocator<T>::NodeAllocator()
 {
   mVersion = 1;
+  mVersionPointer = make_shared<int>(mVersion);
 }
 
 template <typename T>
@@ -126,10 +129,17 @@ void NodeAllocator<T>::GarbageCollection()
 }
 
 template <typename T>
-shared_ptr<int> NodeAllocator<T>::AcquireVersion() {
-  shared_ptr<int> sp = make_shared<int>(mVersion);
-  mReaderQueue.push(sp);
-  return sp;
+shared_ptr<int> NodeAllocator<T>::AcquireVersion()
+{
+  mReaderQueue.push(mVersionPointer);
+  return mVersionPointer;
+}
+
+template <typename T>
+void NodeAllocator<T>::AddVersion()
+{
+  mVersion++;
+  mVersionPointer = make_shared<int>(mVersion);
 }
 
 #endif //_NodeAllocator_H
