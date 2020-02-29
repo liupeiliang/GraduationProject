@@ -20,11 +20,9 @@ public:
   short NextPartialKey(char partialKey);
   
 public:
-
   Node<T>* mChildren[256];
   
 };
-
 
 template <typename T>
 Node256<T>::Node256()

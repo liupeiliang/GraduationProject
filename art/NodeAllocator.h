@@ -39,9 +39,7 @@ public:
   queue< Node<T>* > mGCqueue;
   queue< int > mVersionQueue;
   queue< shared_ptr<int> > mReaderQueue;
-  
 };
-
 
 template <typename T>
 NodeAllocator<T>::NodeAllocator()

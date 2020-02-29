@@ -20,12 +20,9 @@ public:
   short NextPartialKey(char partialKey);
   
 public:
-
   Node<T>* mChildren[16];
   char mKey[16];
-  
 };
-
 
 template <typename T>
 Node16<T>::Node16()

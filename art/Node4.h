@@ -23,7 +23,6 @@ public:
   short NextPartialKey(char partialKey);
   
 public:
-  
   Node<T>* mChildren[4];
   char mKey[4];
     

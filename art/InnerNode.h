@@ -13,13 +13,11 @@ public:
   int CheckPrefixOpt(const char* key, int keyLen, int depth) const;
   
 public:
-  
   uint8_t mChildrenNum;
   int mPrefixLen;
   char mPrefix[MAX_PREFIX_LEN]; // 10
-
+  
 };
-
 
 template <typename T>
 InnerNode<T>::InnerNode()

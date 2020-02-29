@@ -20,12 +20,10 @@ public:
   short NextPartialKey(char partialKey);
   
 public:
-
   Node<T>* mChildren[48];
   uint8_t mIndex[256];
   
 };
-
 
 template <typename T>
 Node48<T>::Node48()

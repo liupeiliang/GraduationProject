@@ -15,16 +15,14 @@ public:
   T* Find(const char* key);
   void Insert(const char* key, T* value);
   ArtIterator<T>* SearchPrefix(const char* prefix);
-
   
 private:
-
   LeafNode<T>* NewLeafNode(const char* key, int keyLen, T* value);
   int CheckPrefixPes(Node<T>* now, const char* key,
                      int keyLen, int depth);
   LeafNode<T>* MinLeaf(Node<T>* now);
   InnerNode<T>* Grow(InnerNode<T>* now);
-
+  
   Node<T>** FindChild(Node<T>* now, char partialKey);
   void AddChild(Node<T>* now, char partialKey, Node<T>* child);
   Node<T>* MinChild(Node<T>* now);
@@ -32,11 +30,9 @@ private:
   Node<T>* CopyNode(Node<T>* now);
 
 private:
-  
   Node<T>* mRoot;
   Node4<T>* mRootGenerator;
   NodeAllocator<T>* mNodeAllocator;
-
 };
 
 template <typename T>
@@ -52,7 +48,6 @@ template <typename T>
 Art<T>::~Art()
 {
   // 回收所有叶节点
-  
   queue<Node<T>*> q;
   if (mRoot != nullptr) q.push(mRoot);
 
@@ -65,7 +60,6 @@ Art<T>::~Art()
     if (now->mNodeType == LEAFNODE) {
       free((LeafNode<T>*)now);
     } else {
-      
       InnerNode<T>* now2;
       now2 = (InnerNode<T>*)now;
       int cn = now2->mChildrenNum;
@@ -98,7 +92,6 @@ Art<T>::~Art()
       }
     }
   }
-
   // 直接通过回收内存池回收所有中间结点
   delete mNodeAllocator;
 }
@@ -110,7 +103,6 @@ T* Art<T>::Find(const char* key)
   
   Node<T>* now = mRoot;
   Node<T>** child;
-
   int depth = 0, keyLen = std::strlen(key) + 1;
   
   while (now != nullptr) {
@@ -164,7 +156,6 @@ void Art<T>::Insert(const char* key, T* value)
   
   while (true) {
 
-    
     // 如果当前节点到达节点为叶节点
     if ((*now)->mNodeType == LEAFNODE) {
       
@@ -337,7 +328,7 @@ template <typename T>
 ArtIterator<T>* Art<T>::SearchPrefix(const char* prefix)
 {
   shared_ptr<int> sp = mNodeAllocator->AcquireVersion();
-
+  
   ArtIterator<T>* it = new ArtIterator<T>;
   Node<T>* now = mRoot;
   Node<T>** child;
@@ -391,7 +382,6 @@ ArtIterator<T>* Art<T>::SearchPrefix(const char* prefix)
 template <typename T>
 LeafNode<T>* Art<T>::NewLeafNode(const char* key, int keyLen, T* value)
 {
-  //
   LeafNode<T>* tem = new(malloc(sizeof(LeafNode<T>) + keyLen)) LeafNode<T>;
   tem->mKeyLen = keyLen;
   tem->mValue = value;
@@ -433,7 +423,6 @@ LeafNode<T>* Art<T>::MinLeaf(Node<T>* now)
 {
   if (now == nullptr) return nullptr;
   if (now->mNodeType == LEAFNODE) return (LeafNode<T>*)now;
-
   return MinLeaf( MinChild(now) );
 }
 
@@ -441,7 +430,6 @@ template <typename T>
 InnerNode<T>* Art<T>::Grow(InnerNode<T>* now)
 {
   switch (now->mNodeType) {
-    
   case (NODE4): {
     Node4<T>* now1;
     now1 = (Node4<T>*)now;
@@ -471,7 +459,6 @@ InnerNode<T>* Art<T>::Grow(InnerNode<T>* now)
     }
     return (InnerNode<T>*)newNode2;
   }
-
     
   case (NODE48): {
     Node48<T>* now3;
@@ -488,7 +475,6 @@ InnerNode<T>* Art<T>::Grow(InnerNode<T>* now)
     }
     return (InnerNode<T>*)newNode3;
   }
-
     
   case (NODE256): {
     throw std::runtime_error("Art::Grow(): Grow NODE256!");

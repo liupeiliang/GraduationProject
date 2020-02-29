@@ -27,7 +27,6 @@ public:
 
 };
 
-
 template <typename T>
 Node<T>::Node()
 {
